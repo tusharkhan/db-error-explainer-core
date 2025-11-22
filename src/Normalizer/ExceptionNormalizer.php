@@ -51,23 +51,45 @@ class ExceptionNormalizer
         );
     }
 
-    private function extractTable(string $message): ?string
-    {
-        // Pattern: table `database`.`table_name`
-        if (preg_match('/table\s+`?([a-zA-Z0-9_]+)`?\.`?([a-zA-Z0-9_]+)`?/i', $message, $matches)) {
-            return $matches[2];
+    private function extractTable(string $errorMessage): ?string {
+        $patterns = [
+            // MySQL/MariaDB
+            "/table ['\"`]?([a-zA-Z0-9_]+)['\"`]?/i",
+            "/Table '([^']+)'/i",
+            "/for table '([^']+)'/i",
+
+            // PostgreSQL
+            '/relation "([^"]+)"/i',
+            '/table "([^"]+)"/i',
+
+            // SQLite
+            "/table ([a-zA-Z0-9_]+)/i",
+            "/no such table: ([a-zA-Z0-9_]+)/i",
+
+            // SQL Server
+            "/object '([^']+)'/i",
+            "/Invalid object name '([^']+)'/i",
+
+            // Oracle
+            "/table or view ([a-zA-Z0-9_]+)/i",
+
+            // Generic patterns
+            "/`([a-zA-Z0-9_]+)`/",
+            '/"([a-zA-Z0-9_]+)"/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $errorMessage, $matches)) {
+                // Clean schema prefix if exists (e.g., schema.table)
+                $tableName = $matches[1];
+                if (str_contains($tableName, '.')) {
+                    $parts = explode('.', $tableName);
+                    $tableName = end($parts);
+                }
+                return trim($tableName, '`"\' ');
+            }
         }
-        
-        // Pattern: Table 'table_name'
-        if (preg_match("/Table\s+'([a-zA-Z0-9_]+)'/i", $message, $matches)) {
-            return $matches[1];
-        }
-        
-        // Pattern: for table `table_name`
-        if (preg_match('/for\s+table\s+`?([a-zA-Z0-9_]+)`?/i', $message, $matches)) {
-            return $matches[1];
-        }
-        
+
         return null;
     }
 
