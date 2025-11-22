@@ -18,7 +18,7 @@ class SqlTest extends TestCase
             $pdo->exec("INSERT INTO users (id) VALUES (1)");
         } catch (\PDOException $e) {
             $diagnosis = $explainer->explain($e);
-            var_dump($diagnosis);
+            var_dump($diagnosis->toArray());
         }
     }
 }

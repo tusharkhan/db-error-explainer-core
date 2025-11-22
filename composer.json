@@ -26,7 +26,8 @@
   },
   "autoload": {
     "psr-4": {
-      "TusharKhan\\DbErrorExplainer\\": "src/"
+      "TusharKhan\\DbErrorExplainer\\": "src/",
+      "TusharKhan\\DbErrorExplainer\\Lib\\": "../../Lib/"
     }
   },
   "minimum-stability": "stable",
