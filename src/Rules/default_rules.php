@@ -1,5 +1,7 @@
 <?php
 
+use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
+
 /**
  * Default error classification rules for DB Error Explainer
  *
@@ -13,7 +15,54 @@
  * - migration: closure to generate Laravel Blueprint migration code
  */
 
+// TODO: Add more rules for other error types
+
 return [
+    [
+        'id' => 'no_database_selected',
+        'error_code' => [MySqlErrorCodes::ER_NO_DB_ERROR],
+        'sqlstate' => ['3D000'],
+        'message_regex' => '/No database selected/i',
+        'extract' => function($normalized) {
+            // extract database name from error message
+            preg_match("/database\s+'([a-zA-Z0-9_]+)'/i", $normalized->message, $matches);
+            return ['database' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'No database selected: First you need to select a database before running any queries.',
+        'migration' => function($ctx) {
+            return 'USE database_name;';
+        }
+    ],
+    [
+        'id' => 'cant_create_file',
+        'error_code' => MysqlErrorCodes::ER_CANT_CREATE_FILE,
+        'sqlstate' => ['HY000'],
+        'message_regex' => '/Can\'t create file/i',
+        'extract' => function($normalized) {
+            //extract file name from error message
+            preg_match('/(CREATE TEMPORARY FILE|CREATE TEMPORARY TABLE) `([^`]+)`/', $normalized->message, $matches);
+            return ['file' => $matches[2] ?? 'unknown'];
+        },
+        'explanation' => 'Can\'t create file: There was an error creating a temporary file. Check your disk space or permissions.',
+        'migration' => function($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'cant_create_table',
+        'error_code' => MysqlErrorCodes::ER_CANT_CREATE_TABLE,
+        'sqlstate' => ['HY000'],
+        'message_regex' => '/Can\'t create table/i',
+        'extract' => function($normalized) {
+            // extract table name from error message
+            preg_match('/CREATE TABLE `([^`]+)`/', $normalized->message, $matches);
+            return ['table' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Can\'t create table: There was an error creating the table "{table}". Check your table name or permissions.',
+        'migration' => function($ctx) {
+            return 'CREATE TABLE `{$ctx["table"]}`.';
+        }
+    ],
     // Foreign Key Constraint - Missing Parent Row
     [
         'id' => 'fk_missing_parent',
@@ -220,7 +269,7 @@ return [
     // Out of Range Value
     [
         'id' => 'out_of_range',
-        'error_code' => [1264],
+        'error_code' => [MySqlErrorCodes::ER_WARN_DATA_OUT_OF_RANGE],
         'sqlstate' => ['22003'],
         'message_regex' => '/Out of range value for column/i',
         'extract' => function($normalized) {

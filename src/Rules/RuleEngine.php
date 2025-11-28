@@ -3,6 +3,8 @@
 namespace TusharKhan\DbErrorExplainer\Rules;
 
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
+use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
+use TusharKhan\DbErrorExplainer\Lib\Helpers;
 
 /**
  * Rule Engine
@@ -22,8 +24,17 @@ class RuleEngine
             $context = $rule['extract']($normalized);
         }
 
+        // Try to extract table name using Helpers if not already set
+        if (empty($context['table']) && empty($normalized->table)) {
+            $extractedTable = Helpers::getTableName($normalized->message);
+            if ($extractedTable) {
+                $context['table'] = $extractedTable;
+            }
+        }
+
         // Add default context
         $context['error_code'] = $normalized->code;
+        $context['error_description'] = MySqlErrorCodes::getDescription($normalized->code);
         $context['table'] = $context['table'] ?? $normalized->table ?? 'unknown';
         $context['column'] = $context['column'] ?? $normalized->column ?? null;
         $context['constraint'] = $context['constraint'] ?? $normalized->constraint ?? null;

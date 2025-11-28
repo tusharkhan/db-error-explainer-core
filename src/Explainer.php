@@ -6,6 +6,7 @@ use PDO;
 use Throwable;
 use TusharKhan\DbErrorExplainer\DTO\Diagnosis;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
+use TusharKhan\DbErrorExplainer\Lib\Helpers;
 use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
 use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
 use TusharKhan\DbErrorExplainer\Rules\RuleEngine;

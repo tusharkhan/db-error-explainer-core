@@ -5,6 +5,7 @@ namespace TusharKhan\DbErrorExplainer\Normalizer;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use Throwable;
 use PDOException;
+use TusharKhan\DbErrorExplainer\Lib\Helpers;
 
 /**
  * Exception Normalizer
