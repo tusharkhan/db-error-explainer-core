@@ -128,7 +128,7 @@ return [
     // Duplicate Entry (Unique Constraint Violation)
     [
         'id' => 'duplicate_entry',
-        'error_code' => [1062],
+        'error_code' => [MySqlErrorCodes::ER_DUP_ENTRY],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Duplicate entry .* for key/i',
         'extract' => function($normalized) {
@@ -301,5 +301,62 @@ return [
                 . "// Query: {$ctx['query']}";
         },
     ],
+    [
+        'id' => 'cant_create_database',
+        'error_code' => [MySqlErrorCodes::ER_CANT_CREATE_DB],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t create database/i',
+        'extract' => function($normalized) {
+            preg_match('/CREATE DATABASE `([^`]+)`/', $normalized->message, $matches);
+            return ['database' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Can\'t create database: There was an error creating the database "{database}". Check your database name or permissions.',
+        'migration' => function($ctx) {
+            return 'CREATE DATABASE `{$ctx["database"]}`.';
+        }
+    ],
+    [
+        'id' => 'cant_create_database_exists',
+        'error_code' => [MySqlErrorCodes::ER_DB_CREATE_EXISTS],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t create database; database exists/i',
+        'extract' => function($normalized) {
+            preg_match('/CREATE DATABASE `([^`]+)`/', $normalized->message, $matches);
+            return ['database' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Can\'t create database: The database "{database}" already exists. Check your database name or permissions.',
+        'migration' => function($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'cant_drop_database',
+        'error_code' => [MySqlErrorCodes::ER_DB_DROP_EXISTS],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t drop database \'([^`]+)\'; database doesn\'t exist/i',
+        'extract' => function($normalized) {
+            preg_match('/Can\'t drop database \'([^\']+)\'; database doesn\'t exist/', $normalized->message, $matches);
+            return ['database' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Can\'t drop database: The database "{database}" does not exist. Check your database name or permissions.',
+        'migration' => function($ctx) {
+            // check if database exists before dropping it
+            return "if (database_exists('{$ctx['database']}')) {\n    DROP DATABASE `{$ctx['database']}`;\n}";
+        }
+    ],
+    [
+        'id' => 'cant_drop_database_filesystem_issue',
+        'error_code' => [MySqlErrorCodes::ER_DB_DROP_RMDIR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => 'Error dropping database: .*',
+        'extract' => function($normalized) {
+            preg_match('/Error dropping database: (.*)/', $normalized->message, $matches);
+            return ['error' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'database drop failure due to filesystem issues. Check directory permissions for the MySQL data folder. Make sure no files in the database folder are in use.',
+        'migration' => function($ctx) {
+            return '';
+        }
+    ]
 ];
 

@@ -80,8 +80,6 @@ class ErrorClassifier
         // TODO - Add more error types
         return match (true) {
             in_array($errorCode, [
-                MySqlErrorCodes::ER_ROW_IS_REFERENCED_2,
-                MySqlErrorCodes::ER_NO_REFERENCED_ROW_2,
                 MySqlErrorCodes::ER_FOREIGN_KEY_ON_PARTITIONED,
                 MySqlErrorCodes::ER_DROP_INDEX_FK,
                 MySqlErrorCodes::ER_FOREIGN_DUPLICATE_KEY_OLD_UNUSED,
@@ -119,13 +117,25 @@ class ErrorClassifier
                 MySqlErrorCodes::ER_SCHEMA_NAME_IN_UPPER_CASE_NOT_ALLOWED_FOR_FK,
                 MySqlErrorCodes::ER_TABLE_NAME_IN_UPPER_CASE_NOT_ALLOWED_FOR_FK,
             ]) => 'foreign_key_constraint',
-            in_array($errorCode, [1062, 1022, 1586, 1859]) => 'duplicate_entry',
-            in_array($errorCode, [1146, 1051]) => 'table_not_found',
-            in_array($errorCode, [1054, 1110]) => 'column_not_found',
+            $errorCode === MySqlErrorCodes::ER_NO_DB_ERROR => 'no_database_selected',
+            $errorCode === MySqlErrorCodes::ER_CANT_CREATE_FILE => 'cant_create_file',
+            $errorCode === MySqlErrorCodes::ER_CANT_CREATE_TABLE => 'cant_create_table',
+            $errorCode === MySqlErrorCodes::ER_NO_REFERENCED_ROW_2 => 'fk_missing_parent',
+            $errorCode === MySqlErrorCodes::ER_ROW_IS_REFERENCED_2 => 'fk_cannot_delete_parent',
+            $errorCode === MySqlErrorCodes::ER_DUP_ENTRY => 'duplicate_entry',
+            $errorCode === MySqlErrorCodes::ER_BAD_FIELD_ERROR => 'unknown_column',
+            $errorCode === MySqlErrorCodes::ER_NO_SUCH_TABLE => 'table_not_found',
+            $errorCode === MySqlErrorCodes::ER_WARN_DATA_OUT_OF_RANGE => 'out_of_range',
+            $errorCode === MySqlErrorCodes::ER_INVALID_DEFAULT => 'invalid_default',
+            $errorCode === MySqlErrorCodes::ER_PARSE_ERROR => 'syntax_error',
+            $errorCode === MySqlErrorCodes::ER_CANT_CREATE_DB => 'cant_create_database',
+            $errorCode === MySqlErrorCodes::ER_DB_CREATE_EXISTS => 'cant_create_database_exists',
+            $errorCode === MySqlErrorCodes::ER_DB_DROP_EXISTS => 'cant_drop_database',
+            $errorCode === MySqlErrorCodes::ER_DB_DROP_RMDIR => 'cant_drop_database_filesystem_issue',
             in_array($errorCode, [1364, 1048]) => 'null_constraint',
             $errorCode === 1064 => 'syntax_error',
             $errorCode === 1049 => 'database_not_found',
-            $errorCode === 1406 => 'data_too_long',
+            $errorCode === MySqlErrorCodes::ER_DATA_TOO_LONG => 'data_too_long',
             in_array($errorCode, [1265, 1264]) => 'data_truncated',
             default => 'unknown_error'
         };
