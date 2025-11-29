@@ -52,4 +52,20 @@ class Test extends TestCase
              ["Syntax error near WHERE", null],
          ];
     }
+
+
+    public function test_get_state_class()
+    {
+        $string = '42000';
+        $class = \TusharKhan\DbErrorExplainer\Lib\Helpers::getSqlStateClass($string);
+        $this->assertEquals('42', $class);
+    }
+
+    public function test_get_state_sub_class()
+    {
+        $string = '42000';
+
+        $subClass = \TusharKhan\DbErrorExplainer\Lib\Helpers::getSqlStateSubClass($string);
+        $this->assertEquals('000', $subClass);
+    }
 }

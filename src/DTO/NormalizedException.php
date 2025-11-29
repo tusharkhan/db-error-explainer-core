@@ -6,17 +6,19 @@ namespace TusharKhan\DbErrorExplainer\DTO;
  * Normalized Exception Data Transfer Object
  * Contains extracted and parsed exception data
  */
-class NormalizedException
+readonly class NormalizedException
 {
     public function __construct(
-        public readonly string $message,
-        public readonly int $code,
-        public readonly ?string $sqlState = null,
-        public readonly ?string $table = null,
-        public readonly ?string $column = null,
-        public readonly ?string $constraint = null,
-        public readonly ?string $database = null,
-        public readonly array $rawData = []
+        public string  $message,
+        public int     $code,
+        public ?string $sqlState = null,
+        public ?string $stateClass = null,
+        public ?string $stateSubClass = null,
+        public ?string $table = null,
+        public ?string $column = null,
+        public ?string $constraint = null,
+        public ?string $database = null,
+        public array   $rawData = []
     ) {}
 
     public function toArray(): array
@@ -25,6 +27,8 @@ class NormalizedException
             'message' => $this->message,
             'code' => $this->code,
             'sql_state' => $this->sqlState,
+            'state_class' => $this->stateClass,
+            'state_subclass' => $this->stateSubClass,
             'table' => $this->table,
             'column' => $this->column,
             'constraint' => $this->constraint,

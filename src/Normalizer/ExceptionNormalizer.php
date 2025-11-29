@@ -20,9 +20,14 @@ class ExceptionNormalizer
         
         // Extract SQLSTATE if available
         $sqlState = null;
+        $stateClass = null;
+        $stateSubClass = null;
         if ($exception instanceof PDOException && isset($exception->errorInfo[0])) {
             $sqlState = $exception->errorInfo[0];
             $code = $exception->errorInfo[1] ?? $code;
+
+            $stateClass = Helpers::getSqlStateClass($sqlState);
+            $stateSubClass = Helpers::getSqlStateSubClass($sqlState);
         }
         
         // Extract table name
@@ -41,6 +46,8 @@ class ExceptionNormalizer
             message: $message,
             code: $code,
             sqlState: $sqlState,
+            stateClass: $stateClass,
+            stateSubClass: $stateSubClass,
             table: $table,
             column: $column,
             constraint: $constraint,
