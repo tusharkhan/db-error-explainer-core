@@ -133,16 +133,6 @@ class ExceptionNormalizer
 
     private function extractDatabase(string $message): ?string
     {
-        // Pattern: database 'db_name'
-        if (preg_match("/database\s+'([a-zA-Z0-9_]+)'/i", $message, $matches)) {
-            return $matches[1];
-        }
-        
-        // Pattern: `database`.`table`
-        if (preg_match('/`([a-zA-Z0-9_]+)`\.`[a-zA-Z0-9_]+`/i', $message, $matches)) {
-            return $matches[1];
-        }
-        
-        return null;
+        return Helpers::extractDatabase($message);
     }
 }
