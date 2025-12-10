@@ -9,8 +9,8 @@ use TusharKhan\DbErrorExplainer\Lib\Helpers;
 class SqlTest extends TestCase
 {
     public function test_sql_generation(){
-//        $pdo = new \PDO('mysql::memory:');
-        $pdo = new \PDO('sqlite::memory:');
+       $pdo = new \PDO('mysql::memory:');
+        // $pdo = new \PDO('sqlite::memory:');
         $explainer = new Explainer($pdo);
 
         try {

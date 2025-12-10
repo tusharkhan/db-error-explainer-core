@@ -60,75 +60,17 @@ class ExceptionNormalizer
     }
 
     private function extractTable(string $errorMessage): ?string {
-        $patterns = [
-            // MySQL/MariaDB
-            "/table ['\"`]?([a-zA-Z0-9_]+)['\"`]?/i",
-            "/Table '([^']+)'/i",
-            "/for table '([^']+)'/i",
-
-            // PostgreSQL
-            '/relation "([^"]+)"/i',
-            '/table "([^"]+)"/i',
-
-            // SQLite
-            "/table ([a-zA-Z0-9_]+)/i",
-            "/no such table: ([a-zA-Z0-9_]+)/i",
-
-            // SQL Server
-            "/object '([^']+)'/i",
-            "/Invalid object name '([^']+)'/i",
-
-            // Oracle
-            "/table or view ([a-zA-Z0-9_]+)/i",
-
-            // Generic patterns
-            "/`([a-zA-Z0-9_]+)`/",
-            '/"([a-zA-Z0-9_]+)"/i',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $errorMessage, $matches)) {
-                // Clean schema prefix if exists (e.g., schema.table)
-                $tableName = $matches[1];
-                if (str_contains($tableName, '.')) {
-                    $parts = explode('.', $tableName);
-                    $tableName = end($parts);
-                }
-                return trim($tableName, '`"\' ');
-            }
-        }
-
-        return null;
+        return Helpers::extractTable($errorMessage);
     }
 
     private function extractColumn(string $message): ?string
     {
-        // Pattern: Column 'column_name'
-        if (preg_match("/Column\s+'([a-zA-Z0-9_]+)'/i", $message, $matches)) {
-            return $matches[1];
-        }
-        
-        // Pattern: column `column_name`
-        if (preg_match('/column\s+`([a-zA-Z0-9_]+)`/i', $message, $matches)) {
-            return $matches[1];
-        }
-        
-        // Pattern: FOREIGN KEY (`column_name`)
-        if (preg_match('/FOREIGN\s+KEY\s+\(`([a-zA-Z0-9_]+)`\)/i', $message, $matches)) {
-            return $matches[1];
-        }
-        
-        return null;
+        return Helpers::extractColumn($message);
     }
 
     private function extractConstraint(string $message): ?string
     {
-        // Pattern: CONSTRAINT `constraint_name`
-        if (preg_match('/CONSTRAINT\s+`([a-zA-Z0-9_]+)`/i', $message, $matches)) {
-            return $matches[1];
-        }
-        
-        return null;
+        return Helpers::extractConstraint($message);
     }
 
     private function extractDatabase(string $message): ?string
