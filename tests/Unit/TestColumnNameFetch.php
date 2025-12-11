@@ -7,14 +7,14 @@ use PHPUnit\Framework\TestCase;
 
 class TestColumnNameFetch extends TestCase
 {
-    #[DataProvider('mysqlErrors')]
+    #[DataProvider('columnErrorProvider')]
     public function test_fetch_column_name_from_sql_errors($errorMessage, $expectedColumnName)
     {
         $columnName = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractColumn($errorMessage);
         $this->assertEquals($expectedColumnName, $columnName);
     }
 
-    public static function mysqlErrors()
+    public static function columnErrorProvider()
     {
         return [
             // MySQL/MariaDB - Column not found errors

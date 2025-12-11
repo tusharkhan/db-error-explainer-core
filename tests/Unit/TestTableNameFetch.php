@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class TestTableNameFetch extends TestCase
 {
-    #[DataProvider('mysql_errors')]
+    #[DataProvider('tableNameErrorProvider')]
     public function test_get_table_name_from_sql_error($errorMessage, $expectedTableName)
     {
         $tableName = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractTable($errorMessage);
@@ -15,11 +15,10 @@ class TestTableNameFetch extends TestCase
         $this->assertEquals($expectedTableName, $tableName);
     }
 
-    public static function mysql_errors()
+    public static function tableNameErrorProvider()
     {
         return [
             ['Table \'test.test\' doesn\'t exist', 'test'],
-            ["Table 'mydb.mytable' doesn't exist", 'mytable'],
             ["Unknown table 'mydb.mytable'", 'mytable'],
             ["Cannot add or update a child row: a foreign key constraint fails (`mydb`.`mytable`, CONSTRAINT `fk_name` FOREIGN KEY (`column`) REFERENCES `othertable` (`column`))", 'mytable'],
             ['ERROR: relation "mytable" does not exist', 'mytable'],

@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class TestExtractConstraint extends TestCase
 {
-    #[DataProvider('sql_errors')]
+    #[DataProvider('constraintErrorProvider')]
     public function test_extract_constraint_from_sql_errors($errorMessage, $expectedConstraint)
     {
         $constraint = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractConstraint($errorMessage);
@@ -15,7 +15,7 @@ class TestExtractConstraint extends TestCase
         $this->assertEquals($expectedConstraint, $constraint);
     }
 
-    public static function sql_errors()
+    public static function constraintErrorProvider()
     {
         return [
             // MySQL/MariaDB - PRIMARY KEY violations

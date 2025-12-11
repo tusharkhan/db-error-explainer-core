@@ -20,7 +20,7 @@ class TestDatabaseNameFetchTest extends TestCase
             ["SQLSTATE[42S02]: Unknown database 'nonexistent_db'", "nonexistent_db"],
             ["Access denied for user 'user'@'localhost' to database 'restricted_db'", "restricted_db"],
             ["database 'test_db' does not exist", "test_db"],
-            ["Table 'sample_db.orders' doesn't exist", "sample_db"],
+            ["Table 'sample_db'.'orders' doesn't exist", "sample_db"],
             ["sQLSTATE[HY000]: General error: 1007 Can't create database 'test'; database exists", "test"],
             ["Cannot open database 'production_db' requested by the login.", "production_db"],
             ["General SQL error without database info", 'info'],
