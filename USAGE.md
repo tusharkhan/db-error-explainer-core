@@ -81,9 +81,7 @@ The operation failed because it violates a foreign key constraint on table 'orde
 Column 'user_id' references a non-existent value in the parent table.
 
 Suggested Fix:
-Schema::table('orders', function (Blueprint $table) {
-    $table->dropForeign(['user_id']);
-});
+ALTER TABLE `orders` DROP FOREIGN KEY `fk_orders_user_id`;
 ```
 
 ### 2. JSON
@@ -119,39 +117,6 @@ Output:
 ```php
 $data = $diagnosis->toArray();
 print_r($data);
-```
-
-## Common Error Types
-
-### Foreign Key Violations (1451, 1452)
-
-```php
-// Error 1451: Cannot delete parent row
-DELETE FROM users WHERE id = 1; // Has related orders
-
-// Error 1452: Cannot add child row
-INSERT INTO orders (user_id) VALUES (999); // User doesn't exist
-```
-
-### Duplicate Entry (1062)
-
-```php
-// Duplicate unique key
-INSERT INTO users (email) VALUES ('existing@example.com');
-```
-
-### Table Not Found (1146)
-
-```php
-// Missing table
-SELECT * FROM non_existent_table;
-```
-
-### Syntax Errors (1064)
-
-```php
-// Invalid SQL
-SELCT * FROM users; // Typo in SELECT
 ```
 
 ## Adding Custom Rules
@@ -260,20 +225,6 @@ try {
     echo "Analysis failed: " . $e->getMessage();
     echo "Original error: " . $exception->getMessage();
 }
-```
-
-## Testing Your Rules
-
-```php
-// Create a test exception
-$testException = new PDOException("SQLSTATE[23000]: Duplicate entry 'test@example.com' for key 'users.email'");
-
-// Analyze it
-$diagnosis = $explainer->explain($testException);
-
-// Verify
-assert($diagnosis->errorType === 'duplicate_entry');
-assert(strpos($diagnosis->explanation, 'duplicate') !== false);
 ```
 
 ## API Reference

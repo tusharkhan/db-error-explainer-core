@@ -27,36 +27,7 @@ composer require tusharkhan/db-error-explainer-core
 
 ## Usage
 
-### Basic Usage
-
-```php
-use TusharKhan\DbErrorExplainer\Explainer;
-
-try {
-    // Your database operation
-    $pdo->exec("INSERT INTO orders...");
-} catch (\Throwable $e) {
-    $explainer = new Explainer($pdo);
-    $diagnosis = $explainer->explain($e);
-    
-    echo $diagnosis->explanation;
-    echo $diagnosis->migrationStub;
-}
-```
-
-### With Configuration
-
-```php
-$config = [
-    'allow_introspection' => true,
-    'redact_sensitive' => true,
-    'custom_rules' => [
-        // Your custom rules
-    ]
-];
-
-$explainer = new Explainer($pdo, $config);
-```
+[See the documentation](USAGE.md) for usage examples.
 
 ## Components
 
