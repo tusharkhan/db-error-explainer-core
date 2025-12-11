@@ -5,7 +5,7 @@ namespace Unit;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-class TestDatabaseNameFetchTest extends TestCase
+class TestDatabaseNameFetch extends TestCase
 {
     #[DataProvider('generateErrorMessage')]
     public function test_get_database_name_from_sql_error_message($errorMessage, $expectedDatabaseName){
