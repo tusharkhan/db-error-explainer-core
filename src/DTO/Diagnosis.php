@@ -6,17 +6,17 @@ namespace TusharKhan\DbErrorExplainer\DTO;
  * Diagnosis Data Transfer Object
  * Contains the analysis result of a database error
  */
-class Diagnosis
+readonly class Diagnosis
 {
     public function __construct(
-        public readonly string $errorCode,
-        public readonly string $errorType,
-        public readonly string $explanation,
-        public readonly ?string $migrationSuggestion = null,
-        public readonly array $context = [],
-        public readonly ?string $sqlState = null,
-        public readonly ?string $originalMessage = null,
-        public readonly array $metadata = []
+        public string  $errorCode,
+        public string  $errorType,
+        public string  $explanation,
+        public ?string $migrationSuggestion = null,
+        public array   $context = [],
+        public ?string $sqlState = null,
+        public ?string $originalMessage = null,
+        public array   $metadata = []
     ) {}
 
     public function toArray(): array

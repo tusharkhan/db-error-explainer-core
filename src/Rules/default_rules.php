@@ -321,12 +321,11 @@ return [
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create database; database exists/i',
         'extract' => function($normalized) {
-            preg_match('/CREATE DATABASE `([^`]+)`/', $normalized->message, $matches);
-            return ['database' => $matches[1] ?? 'unknown'];
+            return ['database' => $normalized->database ?? 'unknown'];
         },
         'explanation' => 'Can\'t create database: The database "{database}" already exists. Check your database name or permissions.',
         'migration' => function($ctx) {
-            return '';
+            return 'CREATE DATABASE `'.$ctx['database'].'2`.';
         }
     ],
     [

@@ -26,7 +26,7 @@ class RuleEngine
 
         // Try to extract table name using Helpers if not already set
         if (empty($context['table']) && empty($normalized->table)) {
-            $extractedTable = Helpers::getTableName($normalized->message);
+            $extractedTable = Helpers::extractTable($normalized->message);
             if ($extractedTable) {
                 $context['table'] = $extractedTable;
             }
@@ -35,7 +35,7 @@ class RuleEngine
         // Add default context
         $context['error_code'] = $normalized->code;
         $context['error_description'] = MySqlErrorCodes::getDescription($normalized->code);
-        $context['table'] = $context['table'] ?? $normalized->table ?? 'unknown';
+        $context['table'] = $context['table'] ?? $normalized->table ?? null;
         $context['column'] = $context['column'] ?? $normalized->column ?? null;
         $context['constraint'] = $context['constraint'] ?? $normalized->constraint ?? null;
 

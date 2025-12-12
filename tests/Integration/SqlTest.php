@@ -18,11 +18,9 @@ class SqlTest extends TestCase
             $pdo->exec("CREATE DATABASE test");
             $pdo->exec("CREATE TABLE orders (order_id INT PRIMARY KEY,customer_id INT,FOREIGN KEY (customer_id) REFERENCES customers(id))");
         } catch (\PDOException $e) {
-            Helpers::dd($e->getMessage(), $e->getCode(), $e->errorInfo);
             $diagnosis = $explainer->explain($e);
-            $this->assertTrue(true);
-            var_dump($diagnosis->toArray());
-            exit();
+            $this->assertEquals("HY000", $diagnosis->sqlState, "Error code should be HY000");
+            $this->assertEquals(1007, $diagnosis->errorCode, "Error code should be 1007");
         }
     }
 }
