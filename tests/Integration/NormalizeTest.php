@@ -10,26 +10,31 @@ class NormalizeTest extends TestCase
     public function test_fakePDO()
     {
         $ex = $this->fakePdoException(
-            'SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry',
-            ['23000', 1062, 'Duplicate entry'],
-            1062
+            "MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists",
+            ['42S01', 1050, "Table 'orders2' already exists"],
+            1050
         );
 
         $this->assertInstanceOf(\PDOException::class, $ex);
-        $this->assertSame('SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry', $ex->getMessage());
-        $this->assertSame(['23000', 1062, 'Duplicate entry'], $ex->errorInfo);
+        $this->assertSame("MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists", $ex->getMessage());
+        $this->assertSame(['42S01', 1050, "Table 'orders2' already exists"], $ex->errorInfo);
+        $this->assertSame(1050, $ex->getCode());
     }
 
     public function test_test_error_normalize()
     {
-        $exception = $this->fakePdoException('SQLSTATE[HY000]: General error: 1 near "DATABASE": syntax error', ['HY000', 1007], 1007);
+        $exception = $this->fakePdoException(
+            "MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists",
+            ['42S01', 1050, "Table 'orders2' already exists"],
+            1050
+        );
         $normalizer = new ExceptionNormalizer();
         $normalized = $normalizer->normalize($exception);
-        $this->assertSame('SQLSTATE[HY000]: General error: 1 near "DATABASE": syntax error', $normalized->message);
-        $this->assertSame(1007, $normalized->code);
-        $this->assertSame('HY000', $normalized->sqlState);
-        $this->assertSame('000', $normalized->stateSubClass);
-        $this->assertSame('HY', $normalized->stateClass);
+        $this->assertSame("MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists", $normalized->message);
+        $this->assertSame(1050, $normalized->code);
+        $this->assertSame('42S01', $normalized->sqlState);
+        $this->assertSame('S01', $normalized->stateSubClass);
+        $this->assertSame('42', $normalized->stateClass);
     }
 
     private function fakePdoException(string $message, ?array $errorInfo = null, $code = 0): \PDOException

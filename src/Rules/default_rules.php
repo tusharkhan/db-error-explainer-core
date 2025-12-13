@@ -20,6 +20,22 @@ use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
 
 return [
     [
+        'id' => 'table_already_exists',
+        'error_code' => [MySqlErrorCodes::ER_TABLE_EXISTS_ERROR],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION_BASE_TABLE_OR_VIEW_ALREADY_EXIST],
+        'message_regex' => '/Table \'([^\']+)\' already exists/i',
+        'extract' => function($normalized) {
+            return ['table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Table already exists: The table "{table}" already exists. You may have a typo or the table needs to be deleted via migration.',
+        'migration' => function($ctx) {
+            $message = "---\n// If this table is incorrect, remove it:\nDROP TABLE IF EXISTS `{$ctx['table']}`";
+            $message .= "\n\n---\n// Use if statement to create the table only if it doesn't exist:\nCREATE TABLE IF NOT EXISTS `{$ctx['table']}` (id INT PRIMARY KEY AUTO_INCREMENT); \n\n -- Add columns as needed";
+
+            return $message;
+        }
+    ],
+    [
         'id' => 'no_database_selected',
         'error_code' => [MySqlErrorCodes::ER_NO_DB_ERROR],
         'sqlstate' => [MySqlStates::INVALID_CATALOG_NAME],
@@ -307,12 +323,11 @@ return [
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create database/i',
         'extract' => function($normalized) {
-            preg_match('/CREATE DATABASE `([^`]+)`/', $normalized->message, $matches);
-            return ['database' => $matches[1] ?? 'unknown'];
+            return ['database' => $normalized->table ?? 'unknown'];
         },
         'explanation' => 'Can\'t create database: There was an error creating the database "{database}". Check your database name or permissions.',
         'migration' => function($ctx) {
-            return 'CREATE DATABASE `{$ctx["database"]}`.';
+            return 'CREATE DATABASE ' .$ctx["database"];
         }
     ],
     [

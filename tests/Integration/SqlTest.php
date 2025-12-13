@@ -15,12 +15,14 @@ class SqlTest extends TestCase
 
         try {
             // create database
-            $pdo->exec("CREATE DATABASE test");
-            $pdo->exec("CREATE TABLE orders (order_id INT PRIMARY KEY,customer_id INT,FOREIGN KEY (customer_id) REFERENCES customers(id))");
+//            $pdo->exec("CREATE DATABASE test");
+//            $pdo->exec("USE test");
+            $pdo->exec("CREATE TABLE test.orders2 (order_id INT PRIMARY KEY,customer_id INT,FOREIGN KEY (customer_id) REFERENCES customers(id))");
         } catch (\PDOException $e) {
             $diagnosis = $explainer->explain($e);
-            $this->assertEquals("HY000", $diagnosis->sqlState, "Error code should be HY000");
-            $this->assertEquals(1007, $diagnosis->errorCode, "Error code should be 1007");
+            Helpers::dd($diagnosis);
+            $this->assertEquals("42S01", $diagnosis->sqlState, "Error code should be HY000");
+            $this->assertEquals(1050, $diagnosis->errorCode, "Error code should be 1007");
         }
     }
 }
