@@ -80,6 +80,968 @@ return [
             return 'CREATE TABLE `{$ctx["table"]}`.';
         }
     ],
+    
+    // Basic Operations Errors (1002-1099)
+    [
+        'id' => 'cant_get_stat',
+        'error_code' => [MySqlErrorCodes::ER_CANT_GET_STAT],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t get status of/i',
+        'extract' => function($normalized) {
+            preg_match("/Can't get status of '([^']+)'/", $normalized->message, $matches);
+            return ['file' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Cannot get status: MySQL cannot get the status of file or directory "{file}". Check if the file exists and has proper permissions.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'cant_lock',
+        'error_code' => [MySqlErrorCodes::ER_CANT_LOCK],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t lock file/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Cannot lock file: MySQL cannot acquire a lock on a file. This may be due to another process holding the lock or permission issues.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'cant_open_file',
+        'error_code' => [MySqlErrorCodes::ER_CANT_OPEN_FILE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t open file/i',
+        'extract' => function($normalized) {
+            preg_match("/Can't open file[: ]*'?([^']+)'?/", $normalized->message, $matches);
+            return ['file' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Cannot open file: MySQL cannot open the file "{file}". Check if the file exists and has proper read permissions.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'file_not_found',
+        'error_code' => [MySqlErrorCodes::ER_FILE_NOT_FOUND],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/File .* not found/i',
+        'extract' => function($normalized) {
+            preg_match("/File '?([^']+)'? not found/", $normalized->message, $matches);
+            return ['file' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'File not found: The file "{file}" was not found. Ensure the file exists in the expected location.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'cant_read_dir',
+        'error_code' => [MySqlErrorCodes::ER_CANT_READ_DIR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t read dir of/i',
+        'extract' => function($normalized) {
+            preg_match("/Can't read dir of '([^']+)'/", $normalized->message, $matches);
+            return ['directory' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Cannot read directory: MySQL cannot read the directory "{directory}". Check directory permissions.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'checkread_error',
+        'error_code' => [MySqlErrorCodes::ER_CHECKREAD],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Record has wrong checksum/i',
+        'extract' => function($normalized) {
+            return ['table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Checksum error: A record in table "{table}" has a wrong checksum, indicating data corruption. Run REPAIR TABLE to fix.',
+        'migration' => function($ctx) { return "REPAIR TABLE `{$ctx['table']}`;"; }
+    ],
+    [
+        'id' => 'duplicate_key',
+        'error_code' => [MySqlErrorCodes::ER_DUP_KEY],
+        'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
+        'message_regex' => '/Can\'t write; duplicate key in table/i',
+        'extract' => function($normalized) {
+            return ['table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Duplicate key: Cannot write to table "{table}" because a duplicate key was found. Check for unique constraint violations.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Access and Authentication Errors
+    [
+        'id' => 'access_denied',
+        'error_code' => [MySqlErrorCodes::ER_ACCESS_DENIED_ERROR],
+        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
+        'message_regex' => '/Access denied for user/i',
+        'extract' => function($normalized) {
+            preg_match("/Access denied for user '([^']+)'@'([^']+)'/", $normalized->message, $matches);
+            return [
+                'user' => $matches[1] ?? 'unknown',
+                'host' => $matches[2] ?? 'unknown'
+            ];
+        },
+        'explanation' => 'Access denied: User "{user}"@"{host}" is not authorized to access the database. Check your credentials and user permissions.',
+        'migration' => function($ctx) { 
+            return "-- Grant access to user:\nGRANT ALL PRIVILEGES ON database_name.* TO '{$ctx['user']}'@'{$ctx['host']}';"; 
+        }
+    ],
+    [
+        'id' => 'unknown_database',
+        'error_code' => [MySqlErrorCodes::ER_BAD_DB_ERROR],
+        'sqlstate' => [MySqlStates::INVALID_CATALOG_NAME],
+        'message_regex' => '/Unknown database/i',
+        'extract' => function($normalized) {
+            preg_match("/Unknown database '([^']+)'/", $normalized->message, $matches);
+            return ['database' => $matches[1] ?? $normalized->database ?? 'unknown'];
+        },
+        'explanation' => 'Unknown database: The database "{database}" does not exist. Create it first or check for typos in the database name.',
+        'migration' => function($ctx) { 
+            return "CREATE DATABASE `{$ctx['database']}`;"; 
+        }
+    ],
+    [
+        'id' => 'unknown_table',
+        'error_code' => [MySqlErrorCodes::ER_BAD_TABLE_ERROR],
+        'sqlstate' => [MySqlStates::TABLE_OR_VIEW_NOT_FOUND],
+        'message_regex' => '/Unknown table/i',
+        'extract' => function($normalized) {
+            preg_match("/Unknown table '([^']+)'/", $normalized->message, $matches);
+            return ['table' => $matches[1] ?? $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Unknown table: The table "{table}" does not exist or was not found. Check the table name or create it.',
+        'migration' => function($ctx) { 
+            return "CREATE TABLE `{$ctx['table']}` (id INT PRIMARY KEY AUTO_INCREMENT);"; 
+        }
+    ],
+    [
+        'id' => 'ambiguous_column',
+        'error_code' => [MySqlErrorCodes::ER_NON_UNIQ_ERROR],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Column .* in .* is ambiguous/i',
+        'extract' => function($normalized) {
+            preg_match("/Column '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown'];
+        },
+        'explanation' => 'Ambiguous column: Column "{column}" exists in multiple tables in the query. Qualify it with the table name (e.g., table.column).',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'duplicate_key_name',
+        'error_code' => [MySqlErrorCodes::ER_DUP_KEYNAME],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Duplicate key name/i',
+        'extract' => function($normalized) {
+            preg_match("/Duplicate key name '([^']+)'/", $normalized->message, $matches);
+            return ['key' => $matches[1] ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Duplicate key name: An index or key named "{key}" already exists. Use a different name for the new key.',
+        'migration' => function($ctx) { 
+            return "-- Drop existing key first:\nALTER TABLE `{$ctx['table']}` DROP INDEX `{$ctx['key']}`;"; 
+        }
+    ],
+    [
+        'id' => 'wrong_field_spec',
+        'error_code' => [MySqlErrorCodes::ER_WRONG_FIELD_SPEC],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Incorrect column specifier/i',
+        'extract' => function($normalized) {
+            preg_match("/Incorrect column specifier for column '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown'];
+        },
+        'explanation' => 'Wrong field specification: The column "{column}" has an incorrect specifier. Check the column definition syntax.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'empty_query',
+        'error_code' => [MySqlErrorCodes::ER_EMPTY_QUERY],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Query was empty/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Empty query: The SQL query is empty. Provide a valid SQL statement.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'non_unique_table',
+        'error_code' => [MySqlErrorCodes::ER_NONUNIQ_TABLE],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Not unique table\/alias/i',
+        'extract' => function($normalized) {
+            preg_match("/Not unique table\/alias: '([^']+)'/", $normalized->message, $matches);
+            return ['table' => $matches[1] ?? $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Non-unique table: The table or alias "{table}" is used more than once without a unique alias. Use different aliases for each occurrence.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Thread and Connection Errors (1094-1099)
+    [
+        'id' => 'no_such_thread',
+        'error_code' => [MySqlErrorCodes::ER_NO_SUCH_THREAD],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Unknown thread id/i',
+        'extract' => function($normalized) {
+            preg_match('/Unknown thread id: (\d+)/', $normalized->message, $matches);
+            return ['thread_id' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Unknown thread: Thread ID "{thread_id}" does not exist. The thread may have already terminated.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'kill_denied',
+        'error_code' => [MySqlErrorCodes::ER_KILL_DENIED_ERROR],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/You are not owner of thread/i',
+        'extract' => function($normalized) {
+            preg_match('/thread (\d+)/', $normalized->message, $matches);
+            return ['thread_id' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Kill denied: You do not have permission to kill thread "{thread_id}". Only the SUPER privilege or the thread owner can kill it.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'no_tables_used',
+        'error_code' => [MySqlErrorCodes::ER_NO_TABLES_USED],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/No tables used/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'No tables used: The query does not reference any tables. Add a FROM clause if you need to select from a table.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'too_big_set',
+        'error_code' => [MySqlErrorCodes::ER_TOO_BIG_SET],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Too big SET/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Too big SET: The SET column contains too many values. MySQL limits SET columns to 64 members.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'no_unique_logfile',
+        'error_code' => [MySqlErrorCodes::ER_NO_UNIQUE_LOGFILE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t generate a unique log-filename/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'No unique logfile: MySQL cannot generate a unique log filename. Check your log file configuration.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Function and Library Errors (1127-1135)
+    [
+        'id' => 'cant_find_dl_entry',
+        'error_code' => [MySqlErrorCodes::ER_CANT_FIND_DL_ENTRY],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t find symbol .* in library/i',
+        'extract' => function($normalized) {
+            preg_match("/Can't find symbol '([^']+)' in library/", $normalized->message, $matches);
+            return ['symbol' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Symbol not found: Cannot find symbol "{symbol}" in the shared library. The UDF library may be corrupted or incompatible.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'function_not_defined',
+        'error_code' => [MySqlErrorCodes::ER_FUNCTION_NOT_DEFINED],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/FUNCTION .* does not exist/i',
+        'extract' => function($normalized) {
+            preg_match("/FUNCTION ([^\s]+) does not exist/", $normalized->message, $matches);
+            return ['function' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Function not defined: The function "{function}" does not exist. Check the function name or create the function first.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'host_is_blocked',
+        'error_code' => [MySqlErrorCodes::ER_HOST_IS_BLOCKED],
+        'sqlstate' => [MySqlStates::CONNECTION_REJECTED],
+        'message_regex' => '/Host .* is blocked/i',
+        'extract' => function($normalized) {
+            preg_match("/Host '([^']+)' is blocked/", $normalized->message, $matches);
+            return ['host' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Host blocked: The host "{host}" is blocked due to too many connection errors. Run FLUSH HOSTS or increase max_connect_errors.',
+        'migration' => function($ctx) { return "FLUSH HOSTS;"; }
+    ],
+    [
+        'id' => 'host_not_privileged',
+        'error_code' => [MySqlErrorCodes::ER_HOST_NOT_PRIVILEGED],
+        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
+        'message_regex' => '/Host .* is not allowed to connect/i',
+        'extract' => function($normalized) {
+            preg_match("/Host '([^']+)' is not allowed/", $normalized->message, $matches);
+            return ['host' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Host not privileged: The host "{host}" is not allowed to connect to this MySQL server. Update user privileges.',
+        'migration' => function($ctx) { 
+            return "-- Allow host to connect:\nCREATE USER 'username'@'{$ctx['host']}' IDENTIFIED BY 'password';"; 
+        }
+    ],
+    [
+        'id' => 'password_anonymous_user',
+        'error_code' => [MySqlErrorCodes::ER_PASSWORD_ANONYMOUS_USER],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/You are not allowed to create a user with GRANT/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Password for anonymous user: Cannot set password for anonymous user. Create a named user instead.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Column and Table Access Errors (1136-1149)
+    [
+        'id' => 'wrong_value_count',
+        'error_code' => [MySqlErrorCodes::ER_WRONG_VALUE_COUNT_ON_ROW],
+        'sqlstate' => [MySqlStates::INSERT_VALUE_LIST_NOT_MATCH],
+        'message_regex' => '/Column count doesn\'t match value count/i',
+        'extract' => function($normalized) {
+            preg_match('/at row (\d+)/', $normalized->message, $matches);
+            return ['row' => $matches[1] ?? '1'];
+        },
+        'explanation' => 'Wrong value count: The number of columns does not match the number of values at row {row}. Ensure INSERT values match the column count.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'cant_reopen_table',
+        'error_code' => [MySqlErrorCodes::ER_CANT_REOPEN_TABLE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Can\'t reopen table/i',
+        'extract' => function($normalized) {
+            preg_match("/Can't reopen table: '([^']+)'/", $normalized->message, $matches);
+            return ['table' => $matches[1] ?? $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Cannot reopen table: Cannot reopen table "{table}". This often occurs when referencing a temporary table multiple times in the same query.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'invalid_use_of_null',
+        'error_code' => [MySqlErrorCodes::ER_INVALID_USE_OF_NULL],
+        'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
+        'message_regex' => '/Invalid use of NULL value/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Invalid use of NULL: NULL value is not allowed in this context. Check for NOT NULL constraints or use a non-NULL value.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'regexp_error',
+        'error_code' => [MySqlErrorCodes::ER_REGEXP_ERROR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Got error .* from regexp/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Regular expression error: The regular expression pattern is invalid. Check the regex syntax.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'mix_of_group_func_and_fields',
+        'error_code' => [MySqlErrorCodes::ER_MIX_OF_GROUP_FUNC_AND_FIELDS],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Mixing of GROUP columns/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Mix of GROUP functions and fields: You are mixing aggregate functions with non-aggregated columns without GROUP BY. Add all non-aggregated columns to GROUP BY.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'nonexisting_grant',
+        'error_code' => [MySqlErrorCodes::ER_NONEXISTING_GRANT],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/There is no such grant defined/i',
+        'extract' => function($normalized) {
+            preg_match("/for user '([^']+)'@'([^']+)'/", $normalized->message, $matches);
+            return ['user' => $matches[1] ?? 'unknown', 'host' => $matches[2] ?? 'unknown'];
+        },
+        'explanation' => 'Non-existing grant: The specified grant for user "{user}"@"{host}" does not exist.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'table_access_denied',
+        'error_code' => [MySqlErrorCodes::ER_TABLEACCESS_DENIED_ERROR],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/.* command denied to user/i',
+        'extract' => function($normalized) {
+            preg_match("/user '([^']+)'@'([^']+)' for table '([^']+)'/", $normalized->message, $matches);
+            return [
+                'user' => $matches[1] ?? 'unknown',
+                'host' => $matches[2] ?? 'unknown',
+                'table' => $matches[3] ?? $normalized->table ?? 'unknown'
+            ];
+        },
+        'explanation' => 'Table access denied: User "{user}"@"{host}" does not have permission to access table "{table}".',
+        'migration' => function($ctx) { 
+            return "GRANT SELECT, INSERT, UPDATE, DELETE ON `{$ctx['table']}` TO '{$ctx['user']}'@'{$ctx['host']}';"; 
+        }
+    ],
+    [
+        'id' => 'column_access_denied',
+        'error_code' => [MySqlErrorCodes::ER_COLUMNACCESS_DENIED_ERROR],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/.* command denied .* for column/i',
+        'extract' => function($normalized) {
+            preg_match("/column '([^']+)' in table '([^']+)'/", $normalized->message, $matches);
+            return [
+                'column' => $matches[1] ?? $normalized->column ?? 'unknown',
+                'table' => $matches[2] ?? $normalized->table ?? 'unknown'
+            ];
+        },
+        'explanation' => 'Column access denied: You do not have permission to access column "{column}" in table "{table}".',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'illegal_grant_for_table',
+        'error_code' => [MySqlErrorCodes::ER_ILLEGAL_GRANT_FOR_TABLE],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Illegal GRANT\/REVOKE command/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Illegal grant for table: The GRANT or REVOKE command is not valid for this table. Check the privilege syntax.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'grant_wrong_host_or_user',
+        'error_code' => [MySqlErrorCodes::ER_GRANT_WRONG_HOST_OR_USER],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Incorrect host or user/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Wrong host or user: The specified host or user in the GRANT statement is incorrect. Check the user and host format.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'nonexisting_table_grant',
+        'error_code' => [MySqlErrorCodes::ER_NONEXISTING_TABLE_GRANT],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/There is no such table grant/i',
+        'extract' => function($normalized) {
+            return ['table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Non-existing table grant: No grants exist for table "{table}" to revoke.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'not_allowed_command',
+        'error_code' => [MySqlErrorCodes::ER_NOT_ALLOWED_COMMAND],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/The used command is not allowed/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Command not allowed: This command is not allowed with this MySQL connection. Check if LOCAL INFILE or other features are disabled.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'syntax_error_general',
+        'error_code' => [MySqlErrorCodes::ER_SYNTAX_ERROR],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/You have an error in your SQL syntax/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'SQL syntax error: There is a syntax error in your SQL query. Check for typos, missing quotes, or incorrect SQL keywords.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Connection Errors (1152-1161)
+    [
+        'id' => 'aborting_connection',
+        'error_code' => [MySqlErrorCodes::ER_ABORTING_CONNECTION],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Aborted connection/i',
+        'extract' => function($normalized) {
+            preg_match('/connection (\d+)/', $normalized->message, $matches);
+            return ['connection_id' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Connection aborted: Connection {connection_id} was aborted. This can happen due to timeout, network issues, or client disconnect.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_packet_too_large',
+        'error_code' => [MySqlErrorCodes::ER_NET_PACKET_TOO_LARGE],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got a packet bigger than/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Packet too large: The network packet exceeds the maximum allowed size. Increase max_allowed_packet in MySQL configuration.',
+        'migration' => function($ctx) { return "-- Increase max_allowed_packet:\nSET GLOBAL max_allowed_packet = 64*1024*1024;"; }
+    ],
+    [
+        'id' => 'net_read_error_from_pipe',
+        'error_code' => [MySqlErrorCodes::ER_NET_READ_ERROR_FROM_PIPE],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got an error reading communication packets/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Network read error: Error reading from the network pipe. Check network connectivity.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_fcntl_error',
+        'error_code' => [MySqlErrorCodes::ER_NET_FCNTL_ERROR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Got an error from fcntl/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Network fcntl error: A file control operation failed on the network socket.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_packets_out_of_order',
+        'error_code' => [MySqlErrorCodes::ER_NET_PACKETS_OUT_OF_ORDER],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got packets out of order/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Packets out of order: Network packets arrived out of order. This may indicate network issues or a bug.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_uncompress_error',
+        'error_code' => [MySqlErrorCodes::ER_NET_UNCOMPRESS_ERROR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Couldn\'t uncompress communication packet/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Uncompress error: Could not decompress the network packet. Check if compression is properly configured.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_read_error',
+        'error_code' => [MySqlErrorCodes::ER_NET_READ_ERROR],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got an error reading communication packets/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Network read error: Error reading data from the network. Check your network connection.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_read_interrupted',
+        'error_code' => [MySqlErrorCodes::ER_NET_READ_INTERRUPTED],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got timeout reading communication packets/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Network read interrupted: A timeout occurred while reading from the network. Consider increasing wait_timeout.',
+        'migration' => function($ctx) { return "SET GLOBAL wait_timeout = 28800;"; }
+    ],
+    [
+        'id' => 'net_error_on_write',
+        'error_code' => [MySqlErrorCodes::ER_NET_ERROR_ON_WRITE],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got an error writing communication packets/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Network write error: Error writing data to the network. Check your network connection.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'net_write_interrupted',
+        'error_code' => [MySqlErrorCodes::ER_NET_WRITE_INTERRUPTED],
+        'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
+        'message_regex' => '/Got timeout writing communication packets/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Network write interrupted: A timeout occurred while writing to the network.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'too_long_string',
+        'error_code' => [MySqlErrorCodes::ER_TOO_LONG_STRING],
+        'sqlstate' => [MySqlStates::DATA_TOO_LONG],
+        'message_regex' => '/String is too long/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'String too long: The string value is too long for the column type. Use TEXT or LONGTEXT for larger strings.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'table_cant_handle_blob',
+        'error_code' => [MySqlErrorCodes::ER_TABLE_CANT_HANDLE_BLOB],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/The used table type doesn\'t support BLOB/i',
+        'extract' => function($normalized) {
+            return ['table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Table cannot handle BLOB: The storage engine for table "{table}" does not support BLOB columns. Use InnoDB instead.',
+        'migration' => function($ctx) { 
+            return "ALTER TABLE `{$ctx['table']}` ENGINE=InnoDB;"; 
+        }
+    ],
+    
+    // Command and Option Errors (1234-1299)
+    [
+        'id' => 'cant_use_option_here',
+        'error_code' => [MySqlErrorCodes::ER_CANT_USE_OPTION_HERE],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Incorrect usage of/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Cannot use option here: The SQL option or clause cannot be used in this context. Check the SQL syntax.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'not_supported_yet',
+        'error_code' => [MySqlErrorCodes::ER_NOT_SUPPORTED_YET],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/This version of MySQL doesn\'t yet support/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Feature not supported: This feature is not yet supported in your MySQL version. Consider upgrading MySQL.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'master_fatal_error_reading_binlog',
+        'error_code' => [MySqlErrorCodes::ER_MASTER_FATAL_ERROR_READING_BINLOG],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Got fatal error .* from source when reading data from binary log/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Binlog read error: Fatal error reading from the binary log. Check the replication configuration and binary logs.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'jt_value_out_of_range',
+        'error_code' => [MySqlErrorCodes::ER_JT_VALUE_OUT_OF_RANGE],
+        'sqlstate' => [MySqlStates::DATA_TRUNCATED],
+        'message_regex' => '/Out of range value/i',
+        'extract' => function($normalized) {
+            preg_match("/column '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown'];
+        },
+        'explanation' => 'Value out of range: The value for column "{column}" is out of the allowed range. Use a larger data type.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'data_truncated',
+        'error_code' => [MySqlErrorCodes::WARN_DATA_TRUNCATED],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/Data truncated for column/i',
+        'extract' => function($normalized) {
+            preg_match("/column '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Data truncated: Data was truncated for column "{column}". The value is too large or of incorrect format.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'warn_using_other_handler',
+        'error_code' => [MySqlErrorCodes::ER_WARN_USING_OTHER_HANDLER],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/Using storage engine .* for table/i',
+        'extract' => function($normalized) {
+            preg_match("/storage engine ([^ ]+)/", $normalized->message, $matches);
+            return ['engine' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Using different storage engine: MySQL is using storage engine "{engine}" instead of the requested one.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'cant_aggregate_collations',
+        'error_code' => [MySqlErrorCodes::ER_CANT_AGGREGATE_2COLLATIONS],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Illegal mix of collations/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Collation mismatch: Cannot aggregate columns with different collations. Use COLLATE clause or ensure consistent collations.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'revoke_grants',
+        'error_code' => [MySqlErrorCodes::ER_REVOKE_GRANTS],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Can\'t revoke all privileges/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Cannot revoke grants: Cannot revoke all privileges. Some privileges may be required or missing.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'unknown_key_cache',
+        'error_code' => [MySqlErrorCodes::ER_UNKNOWN_KEY_CACHE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Unknown key cache/i',
+        'extract' => function($normalized) {
+            preg_match("/Unknown key cache '([^']+)'/", $normalized->message, $matches);
+            return ['cache' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Unknown key cache: The key cache "{cache}" does not exist. Create it first or use the default cache.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'warn_hostname_wont_work',
+        'error_code' => [MySqlErrorCodes::ER_WARN_HOSTNAME_WONT_WORK],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/\'--skip-name-resolve\' is on/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Hostname warning: Hostnames cannot be resolved because --skip-name-resolve is enabled. Use IP addresses instead.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'unknown_storage_engine',
+        'error_code' => [MySqlErrorCodes::ER_UNKNOWN_STORAGE_ENGINE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Unknown storage engine/i',
+        'extract' => function($normalized) {
+            preg_match("/Unknown storage engine '([^']+)'/", $normalized->message, $matches);
+            return ['engine' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Unknown storage engine: The storage engine "{engine}" is not available. Use InnoDB or another supported engine.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'deprecated_syntax',
+        'error_code' => [MySqlErrorCodes::ER_WARN_DEPRECATED_SYNTAX],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/is deprecated and will be removed/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Deprecated syntax: The syntax used is deprecated and will be removed in a future MySQL version. Update your query.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'non_updatable_table',
+        'error_code' => [MySqlErrorCodes::ER_NON_UPDATABLE_TABLE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/The target table .* of the .* is not updatable/i',
+        'extract' => function($normalized) {
+            preg_match("/target table ([^ ]+)/", $normalized->message, $matches);
+            return ['table' => $matches[1] ?? $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Non-updatable table: Table "{table}" cannot be updated in this context. Views or derived tables may not be updatable.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'feature_disabled',
+        'error_code' => [MySqlErrorCodes::ER_FEATURE_DISABLED],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/is disabled/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Feature disabled: This MySQL feature is disabled. Enable it in the server configuration.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'not_supported_auth_mode',
+        'error_code' => [MySqlErrorCodes::ER_NOT_SUPPORTED_AUTH_MODE],
+        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
+        'message_regex' => '/Client does not support authentication protocol/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Auth mode not supported: The client does not support the requested authentication protocol. Update your client or change the authentication method.',
+        'migration' => function($ctx) { 
+            return "-- Change authentication method:\nALTER USER 'username'@'host' IDENTIFIED WITH mysql_native_password BY 'password';"; 
+        }
+    ],
+    [
+        'id' => 'unknown_time_zone',
+        'error_code' => [MySqlErrorCodes::ER_UNKNOWN_TIME_ZONE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Unknown or incorrect time zone/i',
+        'extract' => function($normalized) {
+            preg_match("/time zone: '([^']+)'/", $normalized->message, $matches);
+            return ['timezone' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Unknown time zone: The time zone "{timezone}" is not recognized. Import time zone tables or use a valid zone name.',
+        'migration' => function($ctx) { 
+            return "-- Import time zone data:\n-- mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql"; 
+        }
+    ],
+    [
+        'id' => 'warn_invalid_timestamp',
+        'error_code' => [MySqlErrorCodes::ER_WARN_INVALID_TIMESTAMP],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/Invalid TIMESTAMP/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Invalid timestamp: The timestamp value is invalid. Ensure it is within the valid range (1970-2038 for 32-bit).',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'invalid_character_string',
+        'error_code' => [MySqlErrorCodes::ER_INVALID_CHARACTER_STRING],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Invalid .* character string/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Invalid character string: The string contains invalid characters for the specified character set.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Replication and Log Errors (1379-1391)
+    [
+        'id' => 'log_purge_unknown_error',
+        'error_code' => [MySqlErrorCodes::ER_LOG_PURGE_UNKNOWN_ERR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Unknown error during log purge/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Log purge error: An unknown error occurred while purging binary logs.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'relay_log_init_error',
+        'error_code' => [MySqlErrorCodes::ER_RELAY_LOG_INIT],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Failed to initialize the relay log/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Relay log init error: Failed to initialize the relay log. Check replication configuration and file permissions.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'no_binary_logging',
+        'error_code' => [MySqlErrorCodes::ER_NO_BINARY_LOGGING],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/You are not using binary logging/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'No binary logging: Binary logging is not enabled. Enable it in the MySQL configuration if needed.',
+        'migration' => function($ctx) { return "-- Enable binary logging in my.cnf:\n-- log-bin=mysql-bin"; }
+    ],
+    [
+        'id' => 'reserved_syntax',
+        'error_code' => [MySqlErrorCodes::ER_RESERVED_SYNTAX],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/The syntax .* is reserved/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Reserved syntax: The syntax you used is reserved and cannot be used this way. Check MySQL documentation.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'too_many_params',
+        'error_code' => [MySqlErrorCodes::ER_PS_MANY_PARAM],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Prepared statement contains too many placeholders/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Too many parameters: The prepared statement has too many placeholders. Reduce the number or batch your queries.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'key_part_zero',
+        'error_code' => [MySqlErrorCodes::ER_KEY_PART_0],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Key part .* length cannot be 0/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Key part zero length: An index key part cannot have zero length. Specify a valid length for the key.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
+    // Stored Procedure and Data Errors (1406-1411)
+    [
+        'id' => 'no_default_for_field',
+        'error_code' => [MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Field .* doesn\'t have a default value/i',
+        'extract' => function($normalized) {
+            preg_match("/Field '([^']+)' doesn't have a default value/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'No default value: Column "{column}" requires a value but none was provided and no default exists. Provide a value or set a default.',
+        'migration' => function($ctx) { 
+            return "-- Set a default value:\nALTER TABLE `{$ctx['table']}` ALTER COLUMN `{$ctx['column']}` SET DEFAULT 'value';\n\n-- Or make it nullable:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL;"; 
+        }
+    ],
+    [
+        'id' => 'sp_bad_sqlstate',
+        'error_code' => [MySqlErrorCodes::ER_SP_BAD_SQLSTATE],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Bad SQLSTATE/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Bad SQLSTATE: Invalid SQLSTATE code in stored procedure. Use a valid 5-character SQLSTATE code.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'startup_error',
+        'error_code' => [MySqlErrorCodes::ER_STARTUP],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/during startup/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Startup error: An error occurred during MySQL server startup. Check the error log for details.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'load_from_fixed_size_rows',
+        'error_code' => [MySqlErrorCodes::ER_LOAD_FROM_FIXED_SIZE_ROWS_TO_VAR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/fixed row format/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Fixed size rows error: Cannot load from fixed-size rows to variables. Check your LOAD DATA syntax.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    [
+        'id' => 'cant_create_user_with_grant',
+        'error_code' => [MySqlErrorCodes::ER_CANT_CREATE_USER_WITH_GRANT],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/You are not allowed to create a user with GRANT/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Cannot create user with GRANT: Use CREATE USER statement first, then GRANT privileges separately.',
+        'migration' => function($ctx) { 
+            return "-- Create user first:\nCREATE USER 'username'@'host' IDENTIFIED BY 'password';\n-- Then grant privileges:\nGRANT SELECT ON database.* TO 'username'@'host';"; 
+        }
+    ],
+    [
+        'id' => 'wrong_value_for_type',
+        'error_code' => [MySqlErrorCodes::ER_WRONG_VALUE_FOR_TYPE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Incorrect .* value/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Wrong value for type: The value is incorrect for the specified data type. Check the format and type compatibility.',
+        'migration' => function($ctx) { return ''; }
+    ],
+    
     // Foreign Key Constraint - Missing Parent Row
     [
         'id' => 'fk_missing_parent',
