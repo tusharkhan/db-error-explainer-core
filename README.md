@@ -46,17 +46,29 @@ Rules are defined as PHP arrays:
 
 ```php
 [
-    'id' => 'fk_missing_parent',
-    'error_code' => [1452],
-    'message_regex' => '/foreign key constraint fails/',
-    'extract' => function($normalized) {
-        return ['table' => $normalized->table];
-    },
-    'explanation' => 'Foreign key violation: parent row missing.',
-    'migration' => function($ctx) {
-        return "Schema::table('{$ctx['table']}', fn (Blueprint \$t) => \$t->foreign('user_id')->references('id')->on('users'));";
-    },
-]
+        'id' => RuleIds::FK_MISSING_PARENT,
+        'error_code' => [MySqlErrorCodes::ER_NO_REFERENCED_ROW_2],
+        'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
+        'message_regex' => '/foreign key constraint fails.*Cannot add or update/i',
+        'extract' => function($normalized) {
+            preg_match('/CONSTRAINT `([^`]+)`/', $normalized->message, $constraint);
+            preg_match('/FOREIGN KEY \(`([^`]+)`\)/', $normalized->message, $column);
+            preg_match('/REFERENCES `([^`]+)`/', $normalized->message, $parentTable);
+            preg_match('/\(`([^`]+)`\)/', $normalized->message, $parentColumn);
+
+            return [
+                'table' => $normalized->table ?? 'unknown',
+                'column' => $column[1] ?? 'unknown',
+                'parent_table' => $parentTable[1] ?? 'unknown',
+                'constraint' => $constraint[1] ?? null,
+                'parent_column' => $parentColumn[1] ?? null
+            ];
+        },
+        'explanation' => 'Foreign key constraint violation: The value you are trying to insert or update in column "{column}" does not exist in the parent table "{parent_table}". You must first insert the referenced record in the parent table.',
+        'migration' => function($ctx) {
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::FK_MISSING_PARENT, $ctx))->suggest();
+        },
+    ]
 ```
 
 ## Laravel Integration

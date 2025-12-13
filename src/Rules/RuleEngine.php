@@ -5,6 +5,7 @@ namespace TusharKhan\DbErrorExplainer\Rules;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
 
 /**
  * Rule Engine
@@ -66,7 +67,7 @@ class RuleEngine
     /**
      * Generate migration suggestion from rule
      */
-    public function generateMigration(array $rule, array $context): ?string
+    public function generateMigration(array $rule, array $context): array|string|null
     {
         if (!isset($rule['migration'])) {
             return null;

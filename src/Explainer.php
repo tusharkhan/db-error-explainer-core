@@ -29,7 +29,6 @@ class Explainer
     private ErrorClassifier $classifier;
     private RuleEngine $ruleEngine;
     private ?Introspector $introspector;
-    private MigrationSuggester $migrationSuggester;
 
     public function __construct(PDO $pdo, array $config = [], ?LoggerInterface $logger = null)
     {
@@ -54,7 +53,6 @@ class Explainer
         $this->classifier = new ErrorClassifier($this->rules);
         $this->ruleEngine = new RuleEngine();
         $this->introspector = $this->config['allow_introspection'] ? new Introspector($pdo) : null;
-        $this->migrationSuggester = new MigrationSuggester();
     }
 
     /**

@@ -2,20 +2,44 @@
 
 namespace TusharKhan\DbErrorExplainer\Migration;
 
+use TusharKhan\DbErrorExplainer\Lib\RuleIds;
+
 /**
  * Migration Suggester
  * Generates migration code suggestions for fixing database errors
  */
 class MigrationSuggester
 {
+    public function __construct(protected string $ruleId, protected array $context = []){}
+
+    public function suggest()
+    {
+        return [
+            'migration_suggestion' => match ($this->ruleId) {
+                RuleIds::TABLE_NOT_FOUND => $this->suggestCreateTable($this->context),
+                RuleIds::FK_MISSING_PARENT => $this->suggestAddForeignKey(
+                    $this->context['table'],
+                    $this->context['column'],
+                    $this->context['parent_table'],
+                    $this->context['referenced_column'] ?? 'id',
+                    $this->context['on_delete'] ?? 'CASCADE',
+                    $this->context['on_update'] ?? 'CASCADE'
+                ),
+                default => ''
+            },
+            'other_suggestions' => ''
+        ];
+    }
+
     /**
      * Generate a CREATE TABLE migration suggestion
      */
-    public function suggestCreateTable(string $tableName, array $columns = []): string
+    public function suggestCreateTable(array $context = []): string
     {
-        $migration = "// Create the missing table\n";
-        $migration .= "CREATE TABLE `{$tableName}` (\n";
+        $migration = "--Create the missing table\n";
+        $migration .= "CREATE TABLE `{$context['table']}` (\n";
         $migration .= "    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\n";
+        $columns = $context['column'] ?? [];
 
         foreach ($columns as $column) {
             $migration .= "    `{$column['name']}` {$column['type']}";

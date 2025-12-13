@@ -2,7 +2,7 @@
 
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
-use TusharKhan\DbErrorExplainer\Rules\RuleIds;
+use TusharKhan\DbErrorExplainer\Lib\RuleIds;
 
 /**
  * Default error classification rules for DB Error Explainer
@@ -1054,22 +1054,19 @@ return [
             preg_match('/CONSTRAINT `([^`]+)`/', $normalized->message, $constraint);
             preg_match('/FOREIGN KEY \(`([^`]+)`\)/', $normalized->message, $column);
             preg_match('/REFERENCES `([^`]+)`/', $normalized->message, $parentTable);
+            preg_match('/\(`([^`]+)`\)/', $normalized->message, $parentColumn);
 
             return [
                 'table' => $normalized->table ?? 'unknown',
                 'column' => $column[1] ?? 'unknown',
                 'parent_table' => $parentTable[1] ?? 'unknown',
                 'constraint' => $constraint[1] ?? null,
+                'parent_column' => $parentColumn[1] ?? null
             ];
         },
         'explanation' => 'Foreign key constraint violation: The value you are trying to insert or update in column "{column}" does not exist in the parent table "{parent_table}". You must first insert the referenced record in the parent table.',
         'migration' => function($ctx) {
-            return "ALTER TABLE `{$ctx['table']}`
-                ADD CONSTRAINT `fk_{$ctx['table']}_{$ctx['column']}`
-                FOREIGN KEY (`{$ctx['column']}`)
-                REFERENCES `{$ctx['parent_table']}`(`id`)
-                ON DELETE CASCADE;
-            ";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::FK_MISSING_PARENT, $ctx))->suggest();
         },
     ],
 
@@ -1189,7 +1186,7 @@ return [
         },
         'explanation' => 'Table not found: The table "{table}" does not exist in the database. You need to create it via migration or run pending migrations.',
         'migration' => function($ctx) {
-            return "CREATE TABLE `{$ctx['table']}` (id INT PRIMARY KEY AUTO_INCREMENT); \n\n -- Add columns as needed";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::TABLE_NOT_FOUND, $ctx))->suggest();
         },
     ],
 

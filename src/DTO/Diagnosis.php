@@ -2,6 +2,8 @@
 
 namespace TusharKhan\DbErrorExplainer\DTO;
 
+use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
+
 /**
  * Diagnosis Data Transfer Object
  * Contains the analysis result of a database error
@@ -12,7 +14,7 @@ readonly class Diagnosis
         public string  $errorCode,
         public string  $errorType,
         public string  $explanation,
-        public ?string $migrationSuggestion = null,
+        public array $migrationSuggestion = [],
         public array   $context = [],
         public ?string $sqlState = null,
         public ?string $originalMessage = null,
