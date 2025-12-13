@@ -2,6 +2,7 @@
 
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
+use TusharKhan\DbErrorExplainer\Rules\RuleIds;
 
 /**
  * Default error classification rules for DB Error Explainer
@@ -20,7 +21,7 @@ use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
 
 return [
     [
-        'id' => 'table_already_exists',
+        'id' => RuleIds::TABLE_ALREADY_EXISTS,
         'error_code' => [MySqlErrorCodes::ER_TABLE_EXISTS_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION_BASE_TABLE_OR_VIEW_ALREADY_EXIST],
         'message_regex' => '/Table \'([^\']+)\' already exists/i',
@@ -36,7 +37,7 @@ return [
         }
     ],
     [
-        'id' => 'no_database_selected',
+        'id' => RuleIds::NO_DATABASE_SELECTED,
         'error_code' => [MySqlErrorCodes::ER_NO_DB_ERROR],
         'sqlstate' => [MySqlStates::INVALID_CATALOG_NAME],
         'message_regex' => '/No database selected/i',
@@ -51,7 +52,7 @@ return [
         }
     ],
     [
-        'id' => 'cant_create_file',
+        'id' => RuleIds::CANT_CREATE_FILE,
         'error_code' => MysqlErrorCodes::ER_CANT_CREATE_FILE,
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create file/i',
@@ -66,7 +67,7 @@ return [
         }
     ],
     [
-        'id' => 'cant_create_table',
+        'id' => RuleIds::CANT_CREATE_TABLE,
         'error_code' => MysqlErrorCodes::ER_CANT_CREATE_TABLE,
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create table/i',
@@ -83,7 +84,7 @@ return [
     
     // Basic Operations Errors (1002-1099)
     [
-        'id' => 'cant_get_stat',
+        'id' => RuleIds::CANT_GET_STAT,
         'error_code' => [MySqlErrorCodes::ER_CANT_GET_STAT],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t get status of/i',
@@ -95,7 +96,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'cant_lock',
+        'id' => RuleIds::CANT_LOCK,
         'error_code' => [MySqlErrorCodes::ER_CANT_LOCK],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t lock file/i',
@@ -106,7 +107,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'cant_open_file',
+        'id' => RuleIds::CANT_OPEN_FILE,
         'error_code' => [MySqlErrorCodes::ER_CANT_OPEN_FILE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t open file/i',
@@ -118,7 +119,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'file_not_found',
+        'id' => RuleIds::FILE_NOT_FOUND,
         'error_code' => [MySqlErrorCodes::ER_FILE_NOT_FOUND],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/File .* not found/i',
@@ -130,7 +131,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'cant_read_dir',
+        'id' => RuleIds::CANT_READ_DIR,
         'error_code' => [MySqlErrorCodes::ER_CANT_READ_DIR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t read dir of/i',
@@ -142,7 +143,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'checkread_error',
+        'id' => RuleIds::CHECKREAD_ERROR,
         'error_code' => [MySqlErrorCodes::ER_CHECKREAD],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Record has wrong checksum/i',
@@ -153,7 +154,7 @@ return [
         'migration' => function($ctx) { return "REPAIR TABLE `{$ctx['table']}`;"; }
     ],
     [
-        'id' => 'duplicate_key',
+        'id' => RuleIds::DUPLICATE_KEY,
         'error_code' => [MySqlErrorCodes::ER_DUP_KEY],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Can\'t write; duplicate key in table/i',
@@ -166,7 +167,7 @@ return [
     
     // Access and Authentication Errors
     [
-        'id' => 'access_denied',
+        'id' => RuleIds::ACCESS_DENIED,
         'error_code' => [MySqlErrorCodes::ER_ACCESS_DENIED_ERROR],
         'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
         'message_regex' => '/Access denied for user/i',
@@ -183,7 +184,7 @@ return [
         }
     ],
     [
-        'id' => 'unknown_database',
+        'id' => RuleIds::UNKNOWN_DATABASE,
         'error_code' => [MySqlErrorCodes::ER_BAD_DB_ERROR],
         'sqlstate' => [MySqlStates::INVALID_CATALOG_NAME],
         'message_regex' => '/Unknown database/i',
@@ -197,7 +198,7 @@ return [
         }
     ],
     [
-        'id' => 'unknown_table',
+        'id' => RuleIds::UNKNOWN_TABLE,
         'error_code' => [MySqlErrorCodes::ER_BAD_TABLE_ERROR],
         'sqlstate' => [MySqlStates::TABLE_OR_VIEW_NOT_FOUND],
         'message_regex' => '/Unknown table/i',
@@ -211,7 +212,7 @@ return [
         }
     ],
     [
-        'id' => 'ambiguous_column',
+        'id' => RuleIds::AMBIGUOUS_COLUMN,
         'error_code' => [MySqlErrorCodes::ER_NON_UNIQ_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Column .* in .* is ambiguous/i',
@@ -223,7 +224,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'duplicate_key_name',
+        'id' => RuleIds::DUPLICATE_KEY_NAME,
         'error_code' => [MySqlErrorCodes::ER_DUP_KEYNAME],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Duplicate key name/i',
@@ -237,7 +238,7 @@ return [
         }
     ],
     [
-        'id' => 'wrong_field_spec',
+        'id' => RuleIds::WRONG_FIELD_SPEC,
         'error_code' => [MySqlErrorCodes::ER_WRONG_FIELD_SPEC],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Incorrect column specifier/i',
@@ -249,7 +250,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'empty_query',
+        'id' => RuleIds::EMPTY_QUERY,
         'error_code' => [MySqlErrorCodes::ER_EMPTY_QUERY],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Query was empty/i',
@@ -260,7 +261,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'non_unique_table',
+        'id' => RuleIds::NON_UNIQUE_TABLE,
         'error_code' => [MySqlErrorCodes::ER_NONUNIQ_TABLE],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Not unique table\/alias/i',
@@ -274,7 +275,7 @@ return [
     
     // Thread and Connection Errors (1094-1099)
     [
-        'id' => 'no_such_thread',
+        'id' => RuleIds::NO_SUCH_THREAD,
         'error_code' => [MySqlErrorCodes::ER_NO_SUCH_THREAD],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown thread id/i',
@@ -286,7 +287,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'kill_denied',
+        'id' => RuleIds::KILL_DENIED,
         'error_code' => [MySqlErrorCodes::ER_KILL_DENIED_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/You are not owner of thread/i',
@@ -298,7 +299,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'no_tables_used',
+        'id' => RuleIds::NO_TABLES_USED,
         'error_code' => [MySqlErrorCodes::ER_NO_TABLES_USED],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/No tables used/i',
@@ -309,7 +310,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'too_big_set',
+        'id' => RuleIds::TOO_BIG_SET,
         'error_code' => [MySqlErrorCodes::ER_TOO_BIG_SET],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Too big SET/i',
@@ -320,7 +321,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'no_unique_logfile',
+        'id' => RuleIds::NO_UNIQUE_LOGFILE,
         'error_code' => [MySqlErrorCodes::ER_NO_UNIQUE_LOGFILE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t generate a unique log-filename/i',
@@ -333,7 +334,7 @@ return [
     
     // Function and Library Errors (1127-1135)
     [
-        'id' => 'cant_find_dl_entry',
+        'id' => RuleIds::CANT_FIND_DL_ENTRY,
         'error_code' => [MySqlErrorCodes::ER_CANT_FIND_DL_ENTRY],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t find symbol .* in library/i',
@@ -345,7 +346,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'function_not_defined',
+        'id' => RuleIds::FUNCTION_NOT_DEFINED,
         'error_code' => [MySqlErrorCodes::ER_FUNCTION_NOT_DEFINED],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/FUNCTION .* does not exist/i',
@@ -357,7 +358,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'host_is_blocked',
+        'id' => RuleIds::HOST_IS_BLOCKED,
         'error_code' => [MySqlErrorCodes::ER_HOST_IS_BLOCKED],
         'sqlstate' => [MySqlStates::CONNECTION_REJECTED],
         'message_regex' => '/Host .* is blocked/i',
@@ -369,7 +370,7 @@ return [
         'migration' => function($ctx) { return "FLUSH HOSTS;"; }
     ],
     [
-        'id' => 'host_not_privileged',
+        'id' => RuleIds::HOST_NOT_PRIVILEGED,
         'error_code' => [MySqlErrorCodes::ER_HOST_NOT_PRIVILEGED],
         'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
         'message_regex' => '/Host .* is not allowed to connect/i',
@@ -383,7 +384,7 @@ return [
         }
     ],
     [
-        'id' => 'password_anonymous_user',
+        'id' => RuleIds::PASSWORD_ANONYMOUS_USER,
         'error_code' => [MySqlErrorCodes::ER_PASSWORD_ANONYMOUS_USER],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/You are not allowed to create a user with GRANT/i',
@@ -396,7 +397,7 @@ return [
     
     // Column and Table Access Errors (1136-1149)
     [
-        'id' => 'wrong_value_count',
+        'id' => RuleIds::WRONG_VALUE_COUNT,
         'error_code' => [MySqlErrorCodes::ER_WRONG_VALUE_COUNT_ON_ROW],
         'sqlstate' => [MySqlStates::INSERT_VALUE_LIST_NOT_MATCH],
         'message_regex' => '/Column count doesn\'t match value count/i',
@@ -408,7 +409,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'cant_reopen_table',
+        'id' => RuleIds::CANT_REOPEN_TABLE,
         'error_code' => [MySqlErrorCodes::ER_CANT_REOPEN_TABLE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t reopen table/i',
@@ -420,7 +421,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'invalid_use_of_null',
+        'id' => RuleIds::INVALID_USE_OF_NULL,
         'error_code' => [MySqlErrorCodes::ER_INVALID_USE_OF_NULL],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Invalid use of NULL value/i',
@@ -431,7 +432,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'regexp_error',
+        'id' => RuleIds::REGEXP_ERROR,
         'error_code' => [MySqlErrorCodes::ER_REGEXP_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Got error .* from regexp/i',
@@ -442,7 +443,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'mix_of_group_func_and_fields',
+        'id' => RuleIds::MIX_OF_GROUP_FUNC_AND_FIELDS,
         'error_code' => [MySqlErrorCodes::ER_MIX_OF_GROUP_FUNC_AND_FIELDS],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Mixing of GROUP columns/i',
@@ -453,7 +454,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'nonexisting_grant',
+        'id' => RuleIds::NONEXISTING_GRANT,
         'error_code' => [MySqlErrorCodes::ER_NONEXISTING_GRANT],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/There is no such grant defined/i',
@@ -465,7 +466,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'table_access_denied',
+        'id' => RuleIds::TABLE_ACCESS_DENIED,
         'error_code' => [MySqlErrorCodes::ER_TABLEACCESS_DENIED_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/.* command denied to user/i',
@@ -483,7 +484,7 @@ return [
         }
     ],
     [
-        'id' => 'column_access_denied',
+        'id' => RuleIds::COLUMN_ACCESS_DENIED,
         'error_code' => [MySqlErrorCodes::ER_COLUMNACCESS_DENIED_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/.* command denied .* for column/i',
@@ -498,7 +499,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'illegal_grant_for_table',
+        'id' => RuleIds::ILLEGAL_GRANT_FOR_TABLE,
         'error_code' => [MySqlErrorCodes::ER_ILLEGAL_GRANT_FOR_TABLE],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Illegal GRANT\/REVOKE command/i',
@@ -509,7 +510,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'grant_wrong_host_or_user',
+        'id' => RuleIds::GRANT_WRONG_HOST_OR_USER,
         'error_code' => [MySqlErrorCodes::ER_GRANT_WRONG_HOST_OR_USER],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Incorrect host or user/i',
@@ -520,7 +521,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'nonexisting_table_grant',
+        'id' => RuleIds::NONEXISTING_TABLE_GRANT,
         'error_code' => [MySqlErrorCodes::ER_NONEXISTING_TABLE_GRANT],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/There is no such table grant/i',
@@ -531,7 +532,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'not_allowed_command',
+        'id' => RuleIds::NOT_ALLOWED_COMMAND,
         'error_code' => [MySqlErrorCodes::ER_NOT_ALLOWED_COMMAND],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/The used command is not allowed/i',
@@ -542,7 +543,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'syntax_error_general',
+        'id' => RuleIds::SYNTAX_ERROR_GENERAL,
         'error_code' => [MySqlErrorCodes::ER_SYNTAX_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/You have an error in your SQL syntax/i',
@@ -555,7 +556,7 @@ return [
     
     // Connection Errors (1152-1161)
     [
-        'id' => 'aborting_connection',
+        'id' => RuleIds::ABORTING_CONNECTION,
         'error_code' => [MySqlErrorCodes::ER_ABORTING_CONNECTION],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Aborted connection/i',
@@ -567,7 +568,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_packet_too_large',
+        'id' => RuleIds::NET_PACKET_TOO_LARGE,
         'error_code' => [MySqlErrorCodes::ER_NET_PACKET_TOO_LARGE],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got a packet bigger than/i',
@@ -578,7 +579,7 @@ return [
         'migration' => function($ctx) { return "-- Increase max_allowed_packet:\nSET GLOBAL max_allowed_packet = 64*1024*1024;"; }
     ],
     [
-        'id' => 'net_read_error_from_pipe',
+        'id' => RuleIds::NET_READ_ERROR_FROM_PIPE,
         'error_code' => [MySqlErrorCodes::ER_NET_READ_ERROR_FROM_PIPE],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got an error reading communication packets/i',
@@ -589,7 +590,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_fcntl_error',
+        'id' => RuleIds::NET_FCNTL_ERROR,
         'error_code' => [MySqlErrorCodes::ER_NET_FCNTL_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Got an error from fcntl/i',
@@ -600,7 +601,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_packets_out_of_order',
+        'id' => RuleIds::NET_PACKETS_OUT_OF_ORDER,
         'error_code' => [MySqlErrorCodes::ER_NET_PACKETS_OUT_OF_ORDER],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got packets out of order/i',
@@ -611,7 +612,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_uncompress_error',
+        'id' => RuleIds::NET_UNCOMPRESS_ERROR,
         'error_code' => [MySqlErrorCodes::ER_NET_UNCOMPRESS_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Couldn\'t uncompress communication packet/i',
@@ -622,7 +623,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_read_error',
+        'id' => RuleIds::NET_READ_ERROR,
         'error_code' => [MySqlErrorCodes::ER_NET_READ_ERROR],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got an error reading communication packets/i',
@@ -633,7 +634,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_read_interrupted',
+        'id' => RuleIds::NET_READ_INTERRUPTED,
         'error_code' => [MySqlErrorCodes::ER_NET_READ_INTERRUPTED],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got timeout reading communication packets/i',
@@ -644,7 +645,7 @@ return [
         'migration' => function($ctx) { return "SET GLOBAL wait_timeout = 28800;"; }
     ],
     [
-        'id' => 'net_error_on_write',
+        'id' => RuleIds::NET_ERROR_ON_WRITE,
         'error_code' => [MySqlErrorCodes::ER_NET_ERROR_ON_WRITE],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got an error writing communication packets/i',
@@ -655,7 +656,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'net_write_interrupted',
+        'id' => RuleIds::NET_WRITE_INTERRUPTED,
         'error_code' => [MySqlErrorCodes::ER_NET_WRITE_INTERRUPTED],
         'sqlstate' => [MySqlStates::COMMUNICATION_LINK_FAILURE],
         'message_regex' => '/Got timeout writing communication packets/i',
@@ -666,7 +667,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'too_long_string',
+        'id' => RuleIds::TOO_LONG_STRING,
         'error_code' => [MySqlErrorCodes::ER_TOO_LONG_STRING],
         'sqlstate' => [MySqlStates::DATA_TOO_LONG],
         'message_regex' => '/String is too long/i',
@@ -677,7 +678,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'table_cant_handle_blob',
+        'id' => RuleIds::TABLE_CANT_HANDLE_BLOB,
         'error_code' => [MySqlErrorCodes::ER_TABLE_CANT_HANDLE_BLOB],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/The used table type doesn\'t support BLOB/i',
@@ -692,7 +693,7 @@ return [
     
     // Command and Option Errors (1234-1299)
     [
-        'id' => 'cant_use_option_here',
+        'id' => RuleIds::CANT_USE_OPTION_HERE,
         'error_code' => [MySqlErrorCodes::ER_CANT_USE_OPTION_HERE],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Incorrect usage of/i',
@@ -703,7 +704,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'not_supported_yet',
+        'id' => RuleIds::NOT_SUPPORTED_YET,
         'error_code' => [MySqlErrorCodes::ER_NOT_SUPPORTED_YET],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/This version of MySQL doesn\'t yet support/i',
@@ -714,7 +715,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'master_fatal_error_reading_binlog',
+        'id' => RuleIds::MASTER_FATAL_ERROR_READING_BINLOG,
         'error_code' => [MySqlErrorCodes::ER_MASTER_FATAL_ERROR_READING_BINLOG],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Got fatal error .* from source when reading data from binary log/i',
@@ -725,7 +726,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'jt_value_out_of_range',
+        'id' => RuleIds::JT_VALUE_OUT_OF_RANGE,
         'error_code' => [MySqlErrorCodes::ER_JT_VALUE_OUT_OF_RANGE],
         'sqlstate' => [MySqlStates::DATA_TRUNCATED],
         'message_regex' => '/Out of range value/i',
@@ -737,7 +738,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'data_truncated',
+        'id' => RuleIds::DATA_TRUNCATED,
         'error_code' => [MySqlErrorCodes::WARN_DATA_TRUNCATED],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/Data truncated for column/i',
@@ -749,7 +750,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'warn_using_other_handler',
+        'id' => RuleIds::WARN_USING_OTHER_HANDLER,
         'error_code' => [MySqlErrorCodes::ER_WARN_USING_OTHER_HANDLER],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/Using storage engine .* for table/i',
@@ -761,7 +762,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'cant_aggregate_collations',
+        'id' => RuleIds::CANT_AGGREGATE_COLLATIONS,
         'error_code' => [MySqlErrorCodes::ER_CANT_AGGREGATE_2COLLATIONS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Illegal mix of collations/i',
@@ -772,7 +773,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'revoke_grants',
+        'id' => RuleIds::REVOKE_GRANTS,
         'error_code' => [MySqlErrorCodes::ER_REVOKE_GRANTS],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Can\'t revoke all privileges/i',
@@ -783,7 +784,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'unknown_key_cache',
+        'id' => RuleIds::UNKNOWN_KEY_CACHE,
         'error_code' => [MySqlErrorCodes::ER_UNKNOWN_KEY_CACHE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown key cache/i',
@@ -795,7 +796,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'warn_hostname_wont_work',
+        'id' => RuleIds::WARN_HOSTNAME_WONT_WORK,
         'error_code' => [MySqlErrorCodes::ER_WARN_HOSTNAME_WONT_WORK],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/\'--skip-name-resolve\' is on/i',
@@ -806,7 +807,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'unknown_storage_engine',
+        'id' => RuleIds::UNKNOWN_STORAGE_ENGINE,
         'error_code' => [MySqlErrorCodes::ER_UNKNOWN_STORAGE_ENGINE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown storage engine/i',
@@ -818,7 +819,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'deprecated_syntax',
+        'id' => RuleIds::DEPRECATED_SYNTAX,
         'error_code' => [MySqlErrorCodes::ER_WARN_DEPRECATED_SYNTAX],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/is deprecated and will be removed/i',
@@ -829,7 +830,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'non_updatable_table',
+        'id' => RuleIds::NON_UPDATABLE_TABLE,
         'error_code' => [MySqlErrorCodes::ER_NON_UPDATABLE_TABLE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/The target table .* of the .* is not updatable/i',
@@ -841,7 +842,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'feature_disabled',
+        'id' => RuleIds::FEATURE_DISABLED,
         'error_code' => [MySqlErrorCodes::ER_FEATURE_DISABLED],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/is disabled/i',
@@ -852,7 +853,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'not_supported_auth_mode',
+        'id' => RuleIds::NOT_SUPPORTED_AUTH_MODE,
         'error_code' => [MySqlErrorCodes::ER_NOT_SUPPORTED_AUTH_MODE],
         'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
         'message_regex' => '/Client does not support authentication protocol/i',
@@ -865,7 +866,7 @@ return [
         }
     ],
     [
-        'id' => 'unknown_time_zone',
+        'id' => RuleIds::UNKNOWN_TIME_ZONE,
         'error_code' => [MySqlErrorCodes::ER_UNKNOWN_TIME_ZONE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown or incorrect time zone/i',
@@ -879,7 +880,7 @@ return [
         }
     ],
     [
-        'id' => 'warn_invalid_timestamp',
+        'id' => RuleIds::WARN_INVALID_TIMESTAMP,
         'error_code' => [MySqlErrorCodes::ER_WARN_INVALID_TIMESTAMP],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/Invalid TIMESTAMP/i',
@@ -890,7 +891,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'invalid_character_string',
+        'id' => RuleIds::INVALID_CHARACTER_STRING,
         'error_code' => [MySqlErrorCodes::ER_INVALID_CHARACTER_STRING],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Invalid .* character string/i',
@@ -903,7 +904,7 @@ return [
     
     // Replication and Log Errors (1379-1391)
     [
-        'id' => 'log_purge_unknown_error',
+        'id' => RuleIds::LOG_PURGE_UNKNOWN_ERROR,
         'error_code' => [MySqlErrorCodes::ER_LOG_PURGE_UNKNOWN_ERR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown error during log purge/i',
@@ -914,7 +915,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'relay_log_init_error',
+        'id' => RuleIds::RELAY_LOG_INIT_ERROR,
         'error_code' => [MySqlErrorCodes::ER_RELAY_LOG_INIT],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Failed to initialize the relay log/i',
@@ -925,7 +926,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'no_binary_logging',
+        'id' => RuleIds::NO_BINARY_LOGGING,
         'error_code' => [MySqlErrorCodes::ER_NO_BINARY_LOGGING],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/You are not using binary logging/i',
@@ -936,7 +937,7 @@ return [
         'migration' => function($ctx) { return "-- Enable binary logging in my.cnf:\n-- log-bin=mysql-bin"; }
     ],
     [
-        'id' => 'reserved_syntax',
+        'id' => RuleIds::RESERVED_SYNTAX,
         'error_code' => [MySqlErrorCodes::ER_RESERVED_SYNTAX],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/The syntax .* is reserved/i',
@@ -947,7 +948,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'too_many_params',
+        'id' => RuleIds::TOO_MANY_PARAMS,
         'error_code' => [MySqlErrorCodes::ER_PS_MANY_PARAM],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Prepared statement contains too many placeholders/i',
@@ -958,7 +959,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'key_part_zero',
+        'id' => RuleIds::KEY_PART_ZERO,
         'error_code' => [MySqlErrorCodes::ER_KEY_PART_0],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Key part .* length cannot be 0/i',
@@ -971,7 +972,7 @@ return [
     
     // Stored Procedure and Data Errors (1406-1411)
     [
-        'id' => 'no_default_for_field',
+        'id' => RuleIds::NO_DEFAULT_FOR_FIELD,
         'error_code' => [MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Field .* doesn\'t have a default value/i',
@@ -985,7 +986,7 @@ return [
         }
     ],
     [
-        'id' => 'sp_bad_sqlstate',
+        'id' => RuleIds::SP_BAD_SQLSTATE,
         'error_code' => [MySqlErrorCodes::ER_SP_BAD_SQLSTATE],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Bad SQLSTATE/i',
@@ -996,7 +997,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'startup_error',
+        'id' => RuleIds::STARTUP_ERROR,
         'error_code' => [MySqlErrorCodes::ER_STARTUP],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/during startup/i',
@@ -1007,7 +1008,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'load_from_fixed_size_rows',
+        'id' => RuleIds::LOAD_FROM_FIXED_SIZE_ROWS,
         'error_code' => [MySqlErrorCodes::ER_LOAD_FROM_FIXED_SIZE_ROWS_TO_VAR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/fixed row format/i',
@@ -1018,7 +1019,7 @@ return [
         'migration' => function($ctx) { return ''; }
     ],
     [
-        'id' => 'cant_create_user_with_grant',
+        'id' => RuleIds::CANT_CREATE_USER_WITH_GRANT,
         'error_code' => [MySqlErrorCodes::ER_CANT_CREATE_USER_WITH_GRANT],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/You are not allowed to create a user with GRANT/i',
@@ -1031,7 +1032,7 @@ return [
         }
     ],
     [
-        'id' => 'wrong_value_for_type',
+        'id' => RuleIds::WRONG_VALUE_FOR_TYPE,
         'error_code' => [MySqlErrorCodes::ER_WRONG_VALUE_FOR_TYPE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Incorrect .* value/i',
@@ -1044,7 +1045,7 @@ return [
     
     // Foreign Key Constraint - Missing Parent Row
     [
-        'id' => 'fk_missing_parent',
+        'id' => RuleIds::FK_MISSING_PARENT,
         'error_code' => [MySqlErrorCodes::ER_NO_REFERENCED_ROW_2],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/foreign key constraint fails.*Cannot add or update/i',
@@ -1074,7 +1075,7 @@ return [
 
     // Foreign Key Constraint - Cannot Delete Parent
     [
-        'id' => 'fk_cannot_delete_parent',
+        'id' => RuleIds::FK_CANNOT_DELETE_PARENT,
         'error_code' => [MySqlErrorCodes::ER_ROW_IS_REFERENCED_2],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Cannot delete or update a parent row.*foreign key constraint fails/i',
@@ -1105,7 +1106,7 @@ return [
 
     // Duplicate Entry (Unique Constraint Violation)
     [
-        'id' => 'duplicate_entry',
+        'id' => RuleIds::DUPLICATE_ENTRY,
         'error_code' => [MySqlErrorCodes::ER_DUP_ENTRY],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Duplicate entry .* for key/i',
@@ -1127,7 +1128,7 @@ return [
 
     // NOT NULL Constraint Violation
     [
-        'id' => 'null_constraint_violation',
+        'id' => RuleIds::NULL_CONSTRAINT_VIOLATION,
         'error_code' => [MySqlErrorCodes::ER_BAD_NULL_ERROR, MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION, MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Column .* cannot be null|doesn\'t have a default value/i',
@@ -1153,7 +1154,7 @@ return [
 
     // Unknown Column
     [
-        'id' => 'unknown_column',
+        'id' => RuleIds::UNKNOWN_COLUMN,
         'error_code' => [MySqlErrorCodes::ER_BAD_FIELD_ERROR],
         'sqlstate' => [MySqlStates::COLUMN_NOT_FOUND],
         'message_regex' => '/Unknown column .* in/i',
@@ -1174,7 +1175,7 @@ return [
 
     // Table Doesn't Exist
     [
-        'id' => 'table_not_found',
+        'id' => RuleIds::TABLE_NOT_FOUND,
         'error_code' => [MySqlErrorCodes::ER_NO_SUCH_TABLE],
         'sqlstate' => [MySqlStates::TABLE_OR_VIEW_NOT_FOUND],
         'message_regex' => '/Table .* doesn\'t exist/i',
@@ -1194,7 +1195,7 @@ return [
 
     // Data Too Long
     [
-        'id' => 'data_too_long',
+        'id' => RuleIds::DATA_TOO_LONG,
         'error_code' => [MySqlErrorCodes::ER_DATA_TOO_LONG],
         'sqlstate' => [MySqlStates::DATA_TOO_LONG],
         'message_regex' => '/Data too long for column/i',
@@ -1215,7 +1216,7 @@ return [
 
     // Out of Range Value
     [
-        'id' => 'out_of_range',
+        'id' => RuleIds::OUT_OF_RANGE,
         'error_code' => [MySqlErrorCodes::ER_WARN_DATA_OUT_OF_RANGE],
         'sqlstate' => [MySqlStates::DATA_TRUNCATED],
         'message_regex' => '/Out of range value for column/i',
@@ -1236,7 +1237,7 @@ return [
 
     // Invalid Default Value
     [
-        'id' => 'invalid_default',
+        'id' => RuleIds::INVALID_DEFAULT,
         'error_code' => [MySqlErrorCodes::ER_INVALID_DEFAULT],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Invalid default value for/i',
@@ -1258,7 +1259,7 @@ return [
 
     // Syntax Error
     [
-        'id' => 'syntax_error',
+        'id' => RuleIds::SYNTAX_ERROR,
         'error_code' => [MySqlErrorCodes::ER_PARSE_ERROR],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/You have an error in your SQL syntax/i',
@@ -1280,7 +1281,7 @@ return [
         },
     ],
     [
-        'id' => 'cant_create_database',
+        'id' => RuleIds::CANT_CREATE_DATABASE,
         'error_code' => [MySqlErrorCodes::ER_CANT_CREATE_DB],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create database/i',
@@ -1293,7 +1294,7 @@ return [
         }
     ],
     [
-        'id' => 'cant_create_database_exists',
+        'id' => RuleIds::CANT_CREATE_DATABASE_EXISTS,
         'error_code' => [MySqlErrorCodes::ER_DB_CREATE_EXISTS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create database; database exists/i',
@@ -1306,7 +1307,7 @@ return [
         }
     ],
     [
-        'id' => 'cant_drop_database',
+        'id' => RuleIds::CANT_DROP_DATABASE,
         'error_code' => [MySqlErrorCodes::ER_DB_DROP_EXISTS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t drop database \'([^`]+)\'; database doesn\'t exist/i',
@@ -1321,7 +1322,7 @@ return [
         }
     ],
     [
-        'id' => 'cant_drop_database_filesystem_issue',
+        'id' => RuleIds::CANT_DROP_DATABASE_FILESYSTEM_ISSUE,
         'error_code' => [MySqlErrorCodes::ER_DB_DROP_RMDIR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => 'Error dropping database: .*',
@@ -1335,7 +1336,7 @@ return [
         }
     ],
     [
-        'id' => 'record_cant_read',
+        'id' => RuleIds::RECORD_CANT_READ,
         'error_code' => [MySqlErrorCodes::ER_CANT_FIND_SYSTEM_REC],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t find system record in the given space/i',
@@ -1348,7 +1349,7 @@ return [
         }
     ],
     [
-        'id' => 'name_becomes_empty',
+        'id' => RuleIds::NAME_BECOMES_EMPTY,
         'error_code' => [MySqlErrorCodes::ER_NAME_BECOMES_EMPTY],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Name has become empty when checking privilege/i',
@@ -1357,7 +1358,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'ambiguous_column_name',
+        'id' => RuleIds::AMBIGUOUS_COLUMN_NAME,
         'error_code' => [MySqlErrorCodes::ER_AMBIGUOUS_FIELD_TERM],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Column \'([^\']+)\' in (where|field list|order clause) is ambiguous/i',
@@ -1371,7 +1372,7 @@ return [
         }
     ],
     [
-        'id' => 'foreign_server_doesnt_exist',
+        'id' => RuleIds::FOREIGN_SERVER_DOESNT_EXIST,
         'error_code' => [MySqlErrorCodes::ER_FOREIGN_SERVER_DOESNT_EXIST],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Foreign server does not exist/i',
@@ -1382,7 +1383,7 @@ return [
         'migration' => function($ctx) {return "CREATE SERVER foreign_server_name FOREIGN DATA WRAPPER mysql OPTIONS (HOST 'hostname', DATABASE '". $ctx['database'] ."', USER 'username', PASSWORD 'password');";}
     ],
     [
-        'id' => 'foreign_server_exists',
+        'id' => RuleIds::FOREIGN_SERVER_EXISTS,
         'error_code' => [MySqlErrorCodes::ER_FOREIGN_SERVER_EXISTS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Foreign server already exists/i',
@@ -1391,7 +1392,7 @@ return [
         'migration' => function($ctx) {return "DROP SERVER `".$ctx['server']."`;";}
     ],
     [
-        'id' => 'illegal_ha_create_option',
+        'id' => RuleIds::ILLEGAL_HA_CREATE_OPTION,
         'error_code' => [MySqlErrorCodes::ER_ILLEGAL_HA_CREATE_OPTION],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Illegal HA create option/i',
@@ -1400,7 +1401,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'unknown_locale',
+        'id' => RuleIds::UNKNOWN_LOCALE,
         'error_code' => [MySqlErrorCodes::ER_UNKNOWN_LOCALE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown locale: .*/i',
@@ -1412,7 +1413,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'slave_ignore_server_ids',
+        'id' => RuleIds::SLAVE_IGNORE_SERVER_IDS,
         'error_code' => [MySqlErrorCodes::ER_SLAVE_IGNORE_SERVER_IDS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Slave I/O thread is not running and can\'t be started when server id is in the ignore list/i',
@@ -1421,7 +1422,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'query_cache_disabled',
+        'id' => RuleIds::QUERY_CACHE_DISABLED,
         'error_code' => [MySqlErrorCodes::ER_QUERY_CACHE_DISABLED],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Query cache is disabled/i',
@@ -1430,7 +1431,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'innodb_fulltext_limit',
+        'id' => RuleIds::INNODB_FULLTEXT_LIMIT,
         'error_code' => [MySqlErrorCodes::ER_INNODB_FT_LIMIT],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/InnoDB full-text index size limit reached/i',
@@ -1439,7 +1440,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'innodb_no_fulltext_temp_table',
+        'id' => RuleIds::INNODB_NO_FULLTEXT_TEMP_TABLE,
         'error_code' => [MySqlErrorCodes::ER_INNODB_NO_FT_TEMP_TABLE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/InnoDB does not support temporary tables with full-text indexes/i',
@@ -1448,7 +1449,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'innodb_fulltext_wrong_docid_column',
+        'id' => RuleIds::INNODB_FULLTEXT_WRONG_DOCID_COLUMN,
         'error_code' => [MySqlErrorCodes::ER_INNODB_FT_WRONG_DOCID_COLUMN],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/InnoDB full-text index has wrong docid column/i',
@@ -1457,7 +1458,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'innodb_fulltext_wrong_docid_index',
+        'id' => RuleIds::INNODB_FULLTEXT_WRONG_DOCID_INDEX,
         'error_code' => [MySqlErrorCodes::ER_INNODB_FT_WRONG_DOCID_INDEX],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/InnoDB full-text index has wrong docid index/i',
@@ -1466,7 +1467,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'table_in_system_tablespace',
+        'id' => RuleIds::TABLE_IN_SYSTEM_TABLESPACE,
         'error_code' => [MySqlErrorCodes::ER_TABLE_IN_SYSTEM_TABLESPACE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Table is in system tablespace/i',
@@ -1475,7 +1476,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'io_read_error',
+        'id' => RuleIds::IO_READ_ERROR,
         'error_code' => [MySqlErrorCodes::ER_IO_READ_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/I\/O read error/i',
@@ -1484,7 +1485,7 @@ return [
         'migration' => function($ctx) {return '';} 
     ],
     [
-        'id' => 'io_write_error',
+        'id' => RuleIds::IO_WRITE_ERROR,
         'error_code' => [MySqlErrorCodes::ER_IO_WRITE_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/I\/O write error/i',
@@ -1493,7 +1494,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'tablespace_missing',
+        'id' => RuleIds::TABLESPACE_MISSING,
         'error_code' => [MySqlErrorCodes::ER_TABLESPACE_MISSING],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Tablespace missing for table/i',
@@ -1502,7 +1503,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'tablespace_exists',
+        'id' => RuleIds::TABLESPACE_EXISTS,
         'error_code' => [MySqlErrorCodes::ER_TABLESPACE_EXISTS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Tablespace already exists for table/i',
@@ -1511,7 +1512,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'tablespace_discarded',
+        'id' => RuleIds::TABLESPACE_DISCARDED,
         'error_code' => [MySqlErrorCodes::ER_TABLESPACE_DISCARDED],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Tablespace is discarded for table/i',
@@ -1520,7 +1521,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'duplicate_unknown_in_index',
+        'id' => RuleIds::DUPLICATE_UNKNOWN_IN_INDEX,
         'error_code' => [MySqlErrorCodes::ER_DUP_UNKNOWN_IN_INDEX],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Duplicate entry found in index during index creation/i',
@@ -1529,7 +1530,7 @@ return [
         'migration' => function($ctx) {return '';}
     ],
     [
-        'id' => 'ident_causes_too_long_path',
+        'id' => RuleIds::IDENT_CAUSES_TOO_LONG_PATH,
         'error_code' => [MySqlErrorCodes::ER_IDENT_CAUSES_TOO_LONG_PATH],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Identifier name \'([^\']+)\' is too long/i',
@@ -1542,7 +1543,7 @@ return [
         }
     ],
     [
-        'id' => 'alter_operation_not_supported_reason_not_null',
+        'id' => RuleIds::ALTER_OPERATION_NOT_SUPPORTED_REASON_NOT_NULL,
         'error_code' => [MySqlErrorCodes::ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_NOT_NULL],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Alter operation not supported reason: column \'([^\']+)\' is NOT NULL/i',
@@ -1554,7 +1555,7 @@ return [
         }
     ],
     [
-        'id' => 'must_change_password_login',
+        'id' => RuleIds::MUST_CHANGE_PASSWORD_LOGIN,
         'error_code' => [MySqlErrorCodes::ER_MUST_CHANGE_PASSWORD_LOGIN],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/User must change password/i',
@@ -1566,7 +1567,7 @@ return [
         }
     ],
     [
-        'id' => 'row_in_wrong_partition',
+        'id' => RuleIds::ROW_IN_WRONG_PARTITION,
         'error_code' => [MySqlErrorCodes::ER_ROW_IN_WRONG_PARTITION],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Row does not belong to any partition/i',
@@ -1578,7 +1579,7 @@ return [
         }
     ],
     [
-        'id' => 'std_unknown_exception',
+        'id' => RuleIds::STD_UNKNOWN_EXCEPTION,
         'error_code' => [MySqlErrorCodes::ER_STD_UNKNOWN_EXCEPTION],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown exception/i',
@@ -1590,7 +1591,7 @@ return [
         }
     ],
     [
-        'id' => 'gis_data_wrong_endianess',
+        'id' => RuleIds::GIS_DATA_WRONG_ENDIANESS,
         'error_code' => [MySqlErrorCodes::ER_GIS_DATA_WRONG_ENDIANESS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/GIS data has wrong endianess/i',
@@ -1602,7 +1603,7 @@ return [
         }
     ],
     [
-        'id' => 'change_master_password_length',
+        'id' => RuleIds::CHANGE_MASTER_PASSWORD_LENGTH,
         'error_code' => [MySqlErrorCodes::ER_CHANGE_MASTER_PASSWORD_LENGTH],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Master password length is incorrect/i',
@@ -1614,7 +1615,7 @@ return [
         }
     ],
     [
-        'id' => 'user_lock_wrong_name',
+        'id' => RuleIds::USER_LOCK_WRONG_NAME,
         'error_code' => [MySqlErrorCodes::ER_USER_LOCK_WRONG_NAME],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/User lock name is incorrect/i',
@@ -1626,7 +1627,7 @@ return [
         }
     ],
     [
-        'id' => 'group_replication_communication_layer_join_error',
+        'id' => RuleIds::GROUP_REPLICATION_COMMUNICATION_LAYER_JOIN_ERROR,
         'error_code' => [MySqlErrorCodes::ER_GROUP_REPLICATION_COMMUNICATION_LAYER_JOIN_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Group Replication communication layer join error/i',
@@ -1638,7 +1639,7 @@ return [
         }
     ],
     [
-        'id' => 'before_dml_validation_error',
+        'id' => RuleIds::BEFORE_DML_VALIDATION_ERROR,
         'error_code' => [MySqlErrorCodes::ER_BEFORE_DML_VALIDATION_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Before DML validation error/i',
@@ -1650,7 +1651,7 @@ return [
         }
     ],
     [
-        'id' => 'prevents_variable_without_rbr',
+        'id' => RuleIds::PREVENTS_VARIABLE_WITHOUT_RBR,
         'error_code' => [MySqlErrorCodes::ER_PREVENTS_VARIABLE_WITHOUT_RBR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Prevents variable without RBR/i',
@@ -1664,7 +1665,7 @@ return [
 
     // Recent Error Codes (3800+)
     [
-        'id' => 'deprecated_zerofill',
+        'id' => RuleIds::DEPRECATED_ZEROFILL,
         'error_code' => [MySqlErrorCodes::ER_WARN_DEPRECATED_ZEROFILL],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/ZEROFILL .* is deprecated/i',
@@ -1677,7 +1678,7 @@ return [
         }
     ],
     [
-        'id' => 'clone_donor_error',
+        'id' => RuleIds::CLONE_DONOR_ERROR,
         'error_code' => [MySqlErrorCodes::ER_CLONE_DONOR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Clone Donor Error/i',
@@ -1690,7 +1691,7 @@ return [
         }
     ],
     [
-        'id' => 'clone_protocol_error',
+        'id' => RuleIds::CLONE_PROTOCOL_ERROR,
         'error_code' => [MySqlErrorCodes::ER_CLONE_PROTOCOL],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Clone Protocol Error/i',
@@ -1703,7 +1704,7 @@ return [
         }
     ],
     [
-        'id' => 'clone_donor_version_mismatch',
+        'id' => RuleIds::CLONE_DONOR_VERSION_MISMATCH,
         'error_code' => [MySqlErrorCodes::ER_CLONE_DONOR_VERSION],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Clone Donor version mismatch/i',
@@ -1716,7 +1717,7 @@ return [
         }
     ],
     [
-        'id' => 'unknown_error_number',
+        'id' => RuleIds::UNKNOWN_ERROR_NUMBER,
         'error_code' => [MySqlErrorCodes::ER_DA_UNKNOWN_ERROR_NUMBER],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown error number/i',
@@ -1729,7 +1730,7 @@ return [
         }
     ],
     [
-        'id' => 'column_change_size',
+        'id' => RuleIds::COLUMN_CHANGE_SIZE,
         'error_code' => [MySqlErrorCodes::ER_COLUMN_CHANGE_SIZE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Column .* cannot be changed/i',
@@ -1742,7 +1743,7 @@ return [
         }
     ],
     [
-        'id' => 'regexp_invalid_capture_group',
+        'id' => RuleIds::REGEXP_INVALID_CAPTURE_GROUP,
         'error_code' => [MySqlErrorCodes::ER_REGEXP_INVALID_CAPTURE_GROUP_NAME],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Invalid capture group name/i',
@@ -1755,7 +1756,7 @@ return [
         }
     ],
     [
-        'id' => 'ssl_library_error',
+        'id' => RuleIds::SSL_LIBRARY_ERROR,
         'error_code' => [MySqlErrorCodes::ER_DA_SSL_LIBRARY_ERROR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/SSL library error/i',
@@ -1768,7 +1769,7 @@ return [
         }
     ],
     [
-        'id' => 'local_files_disabled',
+        'id' => RuleIds::LOCAL_FILES_DISABLED,
         'error_code' => [MySqlErrorCodes::ER_CLIENT_LOCAL_FILES_DISABLED],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Loading local data is disabled/i',
@@ -1781,7 +1782,7 @@ return [
         }
     ],
     [
-        'id' => 'incompatible_config_version',
+        'id' => RuleIds::INCOMPATIBLE_CONFIG_VERSION,
         'error_code' => [MySqlErrorCodes::ER_IMP_INCOMPATIBLE_CFG_VERSION],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Incompatible .* version/i',
@@ -1794,7 +1795,7 @@ return [
         }
     ],
     [
-        'id' => 'out_of_memory',
+        'id' => RuleIds::OUT_OF_MEMORY,
         'error_code' => [MySqlErrorCodes::ER_DA_OOM],
         'sqlstate' => [MySqlStates::OUT_OF_MEMORY],
         'message_regex' => '/Out of memory/i',
@@ -1807,7 +1808,7 @@ return [
         }
     ],
     [
-        'id' => 'udf_invalid_charset_argument',
+        'id' => RuleIds::UDF_INVALID_CHARSET_ARGUMENT,
         'error_code' => [MySqlErrorCodes::ER_DA_UDF_INVALID_ARGUMENT_TO_SET_CHARSET],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Invalid argument to set charset/i',
@@ -1820,7 +1821,7 @@ return [
         }
     ],
     [
-        'id' => 'misplaced_into',
+        'id' => RuleIds::MISPLACED_INTO,
         'error_code' => [MySqlErrorCodes::ER_MISPLACED_INTO],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Misplaced INTO/i',
@@ -1833,7 +1834,7 @@ return [
         }
     ],
     [
-        'id' => 'user_account_blocked',
+        'id' => RuleIds::USER_ACCOUNT_BLOCKED,
         'error_code' => [MySqlErrorCodes::ER_USER_ACCESS_DENIED_FOR_USER_ACCOUNT_BLOCKED_BY_PASSWORD_LOCK],
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/Account .* is blocked/i',
@@ -1847,7 +1848,7 @@ return [
         }
     ],
     [
-        'id' => 'deprecated_year_unsigned',
+        'id' => RuleIds::DEPRECATED_YEAR_UNSIGNED,
         'error_code' => [MySqlErrorCodes::ER_WARN_DEPRECATED_YEAR_UNSIGNED],
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/UNSIGNED .* YEAR .* is deprecated/i',
@@ -1860,7 +1861,7 @@ return [
         }
     ],
     [
-        'id' => 'clone_network_packet_error',
+        'id' => RuleIds::CLONE_NETWORK_PACKET_ERROR,
         'error_code' => [MySqlErrorCodes::ER_CLONE_NETWORK_PACKET],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Clone network packet error/i',
