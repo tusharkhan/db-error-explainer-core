@@ -698,6 +698,217 @@ return [
         'migration' => function ($ctx) {
             return '';
         }
+    ],
+
+    // Recent Error Codes (3800+)
+    [
+        'id' => 'deprecated_zerofill',
+        'error_code' => [MySqlErrorCodes::ER_WARN_DEPRECATED_ZEROFILL],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/ZEROFILL .* is deprecated/i',
+        'extract' => function($normalized) {
+            return ['column' => $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Deprecated ZEROFILL: The ZEROFILL attribute on column "{column}" is deprecated and will be removed in a future MySQL version. Consider removing it from your schema.',
+        'migration' => function ($ctx) {
+            return "-- Remove ZEROFILL from column:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` INT NOT NULL;";
+        }
+    ],
+    [
+        'id' => 'clone_donor_error',
+        'error_code' => [MySqlErrorCodes::ER_CLONE_DONOR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Clone Donor Error/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Clone Donor Error: An error occurred on the clone donor server. Check the donor server logs for more details.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'clone_protocol_error',
+        'error_code' => [MySqlErrorCodes::ER_CLONE_PROTOCOL],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Clone Protocol Error/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Clone Protocol Error: A protocol error occurred during the clone operation. Ensure both donor and recipient are compatible MySQL versions.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'clone_donor_version_mismatch',
+        'error_code' => [MySqlErrorCodes::ER_CLONE_DONOR_VERSION],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Clone Donor version mismatch/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Clone Donor Version Mismatch: The donor server version is incompatible with the recipient. Both servers must be running compatible MySQL versions.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'unknown_error_number',
+        'error_code' => [MySqlErrorCodes::ER_DA_UNKNOWN_ERROR_NUMBER],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Unknown error number/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Unknown Error Number: An unknown error occurred. This may indicate a bug or corrupted data.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'column_change_size',
+        'error_code' => [MySqlErrorCodes::ER_COLUMN_CHANGE_SIZE],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Column .* cannot be changed/i',
+        'extract' => function($normalized) {
+            return ['column' => $normalized->column ?? 'unknown'];
+        },
+        'explanation' => 'Column Change Size Error: Cannot change the size of column "{column}". This operation may require rebuilding the table or is not supported for this column type.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'regexp_invalid_capture_group',
+        'error_code' => [MySqlErrorCodes::ER_REGEXP_INVALID_CAPTURE_GROUP_NAME],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Invalid capture group name/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Invalid Regex Capture Group: The regular expression contains an invalid capture group name. Check your regex syntax.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'ssl_library_error',
+        'error_code' => [MySqlErrorCodes::ER_DA_SSL_LIBRARY_ERROR],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/SSL library error/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'SSL Library Error: An error occurred in the SSL library. Check your SSL configuration and certificates.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'local_files_disabled',
+        'error_code' => [MySqlErrorCodes::ER_CLIENT_LOCAL_FILES_DISABLED],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Loading local data is disabled/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Local Files Disabled: The LOAD DATA LOCAL INFILE command is disabled. Enable it by setting local_infile=1 in your MySQL configuration.',
+        'migration' => function ($ctx) {
+            return "-- Enable local infile in MySQL configuration:\n-- SET GLOBAL local_infile = 1;";
+        }
+    ],
+    [
+        'id' => 'incompatible_config_version',
+        'error_code' => [MySqlErrorCodes::ER_IMP_INCOMPATIBLE_CFG_VERSION],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Incompatible .* version/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Incompatible Configuration Version: The configuration file version is incompatible with the current MySQL version.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'out_of_memory',
+        'error_code' => [MySqlErrorCodes::ER_DA_OOM],
+        'sqlstate' => [MySqlStates::OUT_OF_MEMORY],
+        'message_regex' => '/Out of memory/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Out of Memory: MySQL ran out of memory. Consider increasing the memory allocation or optimizing your queries.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'udf_invalid_charset_argument',
+        'error_code' => [MySqlErrorCodes::ER_DA_UDF_INVALID_ARGUMENT_TO_SET_CHARSET],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Invalid argument to set charset/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'UDF Invalid Charset Argument: An invalid charset argument was passed to a user-defined function.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'misplaced_into',
+        'error_code' => [MySqlErrorCodes::ER_MISPLACED_INTO],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Misplaced INTO/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Misplaced INTO: The INTO clause is in the wrong position in your SQL query. Check the SQL syntax.',
+        'migration' => function ($ctx) {
+            return '';
+        }
+    ],
+    [
+        'id' => 'user_account_blocked',
+        'error_code' => [MySqlErrorCodes::ER_USER_ACCESS_DENIED_FOR_USER_ACCOUNT_BLOCKED_BY_PASSWORD_LOCK],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'message_regex' => '/Account .* is blocked/i',
+        'extract' => function($normalized) {
+            preg_match('/Account \'([^\']+)\'/', $normalized->message, $matches);
+            return ['user' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'User Account Blocked: The user account "{user}" is blocked due to too many failed login attempts. Wait for the lockout period to expire or have an administrator unlock the account.',
+        'migration' => function ($ctx) {
+            return "-- Unlock the user account:\nALTER USER 'username'@'%' ACCOUNT UNLOCK;";
+        }
+    ],
+    [
+        'id' => 'deprecated_year_unsigned',
+        'error_code' => [MySqlErrorCodes::ER_WARN_DEPRECATED_YEAR_UNSIGNED],
+        'sqlstate' => [MySqlStates::WARNING],
+        'message_regex' => '/UNSIGNED .* YEAR .* is deprecated/i',
+            'extract' => function($normalized) {
+            return ['column' => $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'Deprecated UNSIGNED YEAR: The UNSIGNED attribute on YEAR column "{column}" is deprecated. Remove the UNSIGNED attribute from the column definition.',
+        'migration' => function ($ctx) {
+            return "-- Remove UNSIGNED from YEAR column:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` YEAR NOT NULL;";
+        }
+    ],
+    [
+        'id' => 'clone_network_packet_error',
+        'error_code' => [MySqlErrorCodes::ER_CLONE_NETWORK_PACKET],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Clone network packet error/i',
+        'extract' => function($normalized) {
+            return [];
+        },
+        'explanation' => 'Clone Network Packet Error: A network error occurred during the clone operation. Check network connectivity between donor and recipient servers.',
+        'migration' => function ($ctx) {
+            return '';
+        }
     ]
 ];
 

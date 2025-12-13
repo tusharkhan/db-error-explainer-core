@@ -152,6 +152,22 @@ class ErrorClassifier
             $errorCode === MySqlErrorCodes::ER_PREVENTS_VARIABLE_WITHOUT_RBR => 'prevents_variable_without_rbr',
 
             // Recent Error Codes (3800+)
+            $errorCode === MySqlErrorCodes::ER_WARN_DEPRECATED_ZEROFILL => 'deprecated_zerofill',
+            $errorCode === MySqlErrorCodes::ER_CLONE_DONOR => 'clone_donor_error',
+            $errorCode === MySqlErrorCodes::ER_CLONE_PROTOCOL => 'clone_protocol_error',
+            $errorCode === MySqlErrorCodes::ER_CLONE_DONOR_VERSION => 'clone_donor_version_mismatch',
+            $errorCode === MySqlErrorCodes::ER_DA_UNKNOWN_ERROR_NUMBER => 'unknown_error_number',
+            $errorCode === MySqlErrorCodes::ER_COLUMN_CHANGE_SIZE => 'column_change_size',
+            $errorCode === MySqlErrorCodes::ER_REGEXP_INVALID_CAPTURE_GROUP_NAME => 'regexp_invalid_capture_group',
+            $errorCode === MySqlErrorCodes::ER_DA_SSL_LIBRARY_ERROR => 'ssl_library_error',
+            $errorCode === MySqlErrorCodes::ER_CLIENT_LOCAL_FILES_DISABLED => 'local_files_disabled',
+            $errorCode === MySqlErrorCodes::ER_IMP_INCOMPATIBLE_CFG_VERSION => 'incompatible_config_version',
+            $errorCode === MySqlErrorCodes::ER_DA_OOM => 'out_of_memory',
+            $errorCode === MySqlErrorCodes::ER_DA_UDF_INVALID_ARGUMENT_TO_SET_CHARSET => 'udf_invalid_charset_argument',
+            $errorCode === MySqlErrorCodes::ER_MISPLACED_INTO => 'misplaced_into',
+            $errorCode === MySqlErrorCodes::ER_USER_ACCESS_DENIED_FOR_USER_ACCOUNT_BLOCKED_BY_PASSWORD_LOCK => 'user_account_blocked',
+            $errorCode === MySqlErrorCodes::ER_WARN_DEPRECATED_YEAR_UNSIGNED => 'deprecated_year_unsigned',
+            $errorCode === MySqlErrorCodes::ER_CLONE_NETWORK_PACKET => 'clone_network_packet_error',
 
             default => 'unknown_error'
         };
