@@ -115,10 +115,44 @@ class ErrorClassifier
             $errorCode === MySqlErrorCodes::ER_DB_DROP_EXISTS => 'cant_drop_database',
             $errorCode === MySqlErrorCodes::ER_DB_DROP_RMDIR => 'cant_drop_database_filesystem_issue',
             $errorCode === MySqlErrorCodes::ER_TABLE_EXISTS_ERROR => 'table_already_exists',
-            in_array($errorCode, [1364, 1048]) => 'null_constraint',
-            $errorCode === 1049 => 'database_not_found',
-            $errorCode === MySqlErrorCodes::ER_DATA_TOO_LONG => 'data_too_long',
-            in_array($errorCode, [1265, 1264]) => 'data_truncated',
+            $errorCode === MySqlErrorCodes::ER_CANT_FIND_SYSTEM_REC => 'record_cant_read',
+            $errorCode === MySqlErrorCodes::ER_NAME_BECOMES_EMPTY => 'name_becomes_empty',
+            $errorCode === MySqlErrorCodes::ER_AMBIGUOUS_FIELD_TERM => 'ambiguous_column_name',
+            $errorCode === MySqlErrorCodes::ER_FOREIGN_SERVER_DOESNT_EXIST => 'foreign_server_doesnt_exist',
+            $errorCode === MySqlErrorCodes::ER_FOREIGN_SERVER_EXISTS => 'foreign_server_exists',
+            $errorCode === MySqlErrorCodes::ER_ILLEGAL_HA_CREATE_OPTION => 'illegal_ha_create_option',
+            $errorCode === MySqlErrorCodes::ER_UNKNOWN_LOCALE => 'unknown_locale',
+            $errorCode === MySqlErrorCodes::ER_SLAVE_IGNORE_SERVER_IDS => 'slave_ignore_server_ids',
+            $errorCode === MySqlErrorCodes::ER_QUERY_CACHE_DISABLED => 'query_cache_disabled',
+
+            // InnoDB and Storage Errors (1795-1863)
+            $errorCode === MySqlErrorCodes::ER_INNODB_FT_LIMIT => 'innodb_fulltext_limit',
+            $errorCode === MySqlErrorCodes::ER_INNODB_NO_FT_TEMP_TABLE => 'innodb_no_fulltext_temp_table',
+            $errorCode === MySqlErrorCodes::ER_INNODB_FT_WRONG_DOCID_COLUMN => 'innodb_fulltext_wrong_docid_column',
+            $errorCode === MySqlErrorCodes::ER_INNODB_FT_WRONG_DOCID_INDEX => 'innodb_fulltext_wrong_docid_index',
+            $errorCode === MySqlErrorCodes::ER_TABLE_IN_SYSTEM_TABLESPACE => 'table_in_system_tablespace',
+            $errorCode === MySqlErrorCodes::ER_IO_READ_ERROR => 'io_read_error',
+            $errorCode === MySqlErrorCodes::ER_IO_WRITE_ERROR => 'io_write_error',
+            $errorCode === MySqlErrorCodes::ER_TABLESPACE_MISSING => 'tablespace_missing',
+            $errorCode === MySqlErrorCodes::ER_TABLESPACE_EXISTS => 'tablespace_exists',
+            $errorCode === MySqlErrorCodes::ER_TABLESPACE_DISCARDED => 'tablespace_discarded',
+            $errorCode === MySqlErrorCodes::ER_DUP_UNKNOWN_IN_INDEX => 'duplicate_unknown_in_index',
+            $errorCode === MySqlErrorCodes::ER_IDENT_CAUSES_TOO_LONG_PATH => 'ident_causes_too_long_path',
+            $errorCode === MySqlErrorCodes::ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_NOT_NULL => 'alter_operation_not_supported_reason_not_null',
+            $errorCode === MySqlErrorCodes::ER_MUST_CHANGE_PASSWORD_LOGIN => 'must_change_password_login',
+            $errorCode === MySqlErrorCodes::ER_ROW_IN_WRONG_PARTITION => 'row_in_wrong_partition',
+
+            // Advanced Error Codes (3000+)
+            $errorCode === MySqlErrorCodes::ER_STD_UNKNOWN_EXCEPTION => 'std_unknown_exception',
+            $errorCode === MySqlErrorCodes::ER_GIS_DATA_WRONG_ENDIANESS => 'gis_data_wrong_endianess',
+            $errorCode === MySqlErrorCodes::ER_CHANGE_MASTER_PASSWORD_LENGTH => 'change_master_password_length',
+            $errorCode === MySqlErrorCodes::ER_USER_LOCK_WRONG_NAME => 'user_lock_wrong_name',
+            $errorCode === MySqlErrorCodes::ER_GROUP_REPLICATION_COMMUNICATION_LAYER_JOIN_ERROR => 'group_replication_communication_layer_join_error',
+            $errorCode === MySqlErrorCodes::ER_BEFORE_DML_VALIDATION_ERROR => 'before_dml_validation_error',
+            $errorCode === MySqlErrorCodes::ER_PREVENTS_VARIABLE_WITHOUT_RBR => 'prevents_variable_without_rbr',
+
+            // Recent Error Codes (3800+)
+
             default => 'unknown_error'
         };
     }
