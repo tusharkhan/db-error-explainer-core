@@ -7,6 +7,7 @@ use Throwable;
 use TusharKhan\DbErrorExplainer\DTO\Diagnosis;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
 use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
 use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
@@ -159,7 +160,7 @@ class Explainer
             }
 
             // Get unique constraints if applicable
-            if ($normalized->code === 1062) {
+            if ($normalized->code === MySqlErrorCodes::ER_DUP_ENTRY) {
                 $uniqueConstraints = $this->introspector->getUniqueConstraints(
                     $normalized->table,
                     $normalized->database

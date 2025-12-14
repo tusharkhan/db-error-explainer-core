@@ -25,6 +25,7 @@ class MigrationSuggester
                     $this->context['on_delete'] ?? 'CASCADE',
                     $this->context['on_update'] ?? 'CASCADE'
                 ),
+                RuleIds::UNKNOWN_COLUMN => $this->suggestAddColumn($this->context['table'], $this->context['column']),
                 default => ''
             },
             'other_suggestions' => ''
@@ -39,7 +40,7 @@ class MigrationSuggester
         $migration = "--Create the missing table\n";
         $migration .= "CREATE TABLE `{$context['table']}` (\n";
         $migration .= "    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\n";
-        $columns = $context['column'] ?? [];
+        $columns = $context['table_columns'] ?? [];
 
         foreach ($columns as $column) {
             $migration .= "    `{$column['name']}` {$column['type']}";
@@ -63,7 +64,7 @@ class MigrationSuggester
      */
     public function suggestAddColumn(string $tableName, string $columnName, string $type = 'VARCHAR(255)', bool $nullable = false): string
     {
-        $migration = "// Add the missing column\n";
+        $migration = "--Add the missing column\n";
         $migration .= "ALTER TABLE `{$tableName}` \n";
         $migration .= "ADD COLUMN `{$columnName}` {$type}";
 
@@ -73,7 +74,7 @@ class MigrationSuggester
             $migration .= " NOT NULL";
         }
 
-        $migration .= ";";
+        $migration .= "; --column type can be any valid MySQL column type";
 
         return $migration;
     }

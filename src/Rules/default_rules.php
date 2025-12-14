@@ -3,6 +3,7 @@
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
 use TusharKhan\DbErrorExplainer\Lib\RuleIds;
+use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
 
 /**
  * Default error classification rules for DB Error Explainer
@@ -1159,14 +1160,14 @@ return [
             preg_match('/Unknown column \'([^\']+)\' in \'([^\']+)\'/', $normalized->message, $matches);
 
             return [
-                'column' => $matches[1] ?? 'unknown',
+                'column' => $normalized->column ?? 'unknown',
                 'clause' => $matches[2] ?? 'field list',
                 'table' => $normalized->table ?? 'unknown',
             ];
         },
         'explanation' => 'Unknown column: Column "{column}" does not exist in the table. You may have a typo or the column needs to be added via migration.',
         'migration' => function($ctx) {
-            return "-- Add the missing column:\n\nALTER TABLE `{$ctx['table']}` ADD `{$ctx['column']}` VARCHAR(255) NULL;\n\n --column type can be any valid MySQL column type";
+            return (new MigrationSuggester(RuleIds::UNKNOWN_COLUMN, $ctx))->suggest();
         },
     ],
 

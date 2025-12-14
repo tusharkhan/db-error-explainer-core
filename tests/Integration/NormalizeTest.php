@@ -3,13 +3,14 @@
 namespace Integration;
 
 use PHPUnit\Framework\TestCase;
+use TusharKhan\DbErrorExplainer\Lib\Helpers;
 use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
 
 class NormalizeTest extends TestCase
 {
     public function test_fakePDO()
     {
-        $ex = $this->fakePdoException(
+        $ex = Helpers::fakePdoException(
             "MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists",
             ['42S01', 1050, "Table 'orders2' already exists"],
             1050
@@ -23,7 +24,7 @@ class NormalizeTest extends TestCase
 
     public function test_error_normalize()
     {
-        $exception = $this->fakePdoException(
+        $exception = Helpers::fakePdoException(
             "MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists",
             ['42S01', 1050, "Table 'orders2' already exists"],
             1050
@@ -39,7 +40,7 @@ class NormalizeTest extends TestCase
 
     public function test_table_not_exist()
     {
-        $exception = $this->fakePdoException(
+        $exception = Helpers::fakePdoException(
             "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders.orders' doesn't exist",
             ['42S02', 1146, "Table 'orders.orders' doesn't exist"],
             1146
@@ -52,14 +53,5 @@ class NormalizeTest extends TestCase
         $this->assertSame('42S02', $normalized->sqlState);
         $this->assertSame('S02', $normalized->stateSubClass);
         $this->assertSame('42', $normalized->stateClass);
-    }
-
-    private function fakePdoException(string $message, ?array $errorInfo = null, $code = 0): \PDOException
-    {
-        $e = new \PDOException($message, (int) $code);
-        if ($errorInfo !== null) {
-            $e->errorInfo = $errorInfo;
-        }
-        return $e;
     }
 }
