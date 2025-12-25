@@ -25,6 +25,7 @@ class TestDatabaseNameFetch extends TestCase
             ["Cannot open database 'production_db' requested by the login.", "production_db"],
             ["General SQL error without database info", 'info'],
             ["Connection timeout occurred", null],
+            ["Error 1452: Cannot add or update a child row: a foreign key constraint fails (mydb.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))", "mydb"]
         ];
     }
 }

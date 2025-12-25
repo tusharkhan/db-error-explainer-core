@@ -24,7 +24,8 @@ class TestTableNameFetch extends TestCase
             ['ERROR: relation "mytable" does not exist', 'mytable'],
             ['ERROR: relation "myschema.mytable" does not exist', 'mytable'],
             ["Table 'mydb.mytable' doesn't exist", 'mytable'],
-            ["Cannot find the object 'dbo.mytable', because it does not exist or you do not have permissions.", 'mytable']
+            ["Cannot find the object 'dbo.mytable', because it does not exist or you do not have permissions.", 'mytable'],
+            ["Error 1452: Cannot add or update a child row: a foreign key constraint fails (mydb.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))", 'orders']
         ];
     }
 }

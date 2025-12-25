@@ -92,7 +92,7 @@ class MigrationSuggester
     ): string {
         $constraintName = "{$tableName}_{$columnName}_foreign";
 
-        $migration = "// Add foreign key constraint\n";
+        $migration = "// Add foreign key constraint \n";
         $migration .= "ALTER TABLE `{$tableName}` \n";
         $migration .= "ADD CONSTRAINT `{$constraintName}` \n";
         $migration .= "FOREIGN KEY (`{$columnName}`) \n";

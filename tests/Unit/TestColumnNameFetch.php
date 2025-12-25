@@ -79,6 +79,54 @@ class TestColumnNameFetch extends TestCase
             // Mixed case columns
             ["Unknown column 'userId' in 'where clause'", "userId"],
             ["Column 'createdAt' in field list is ambiguous", "createdAt"],
+            ["Error 1452: Cannot add or update a child row: a foreign key constraint fails (mydb.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))", "user_id"],
+
+            // Additional NULL constraint errors
+            ["SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'email' cannot be null", "email"],
+            ["ERROR 1048 (23000): Column 'password' cannot be null", "password"],
+
+            // Default value errors
+            ["ERROR 1364 (HY000): Field 'username' doesn't have a default value", "username"],
+            ["SQLSTATE[HY000]: General error: 1364 Field 'created_by' doesn't have a default value", "created_by"],
+
+            // CHECK constraint errors
+            ["Check constraint 'check_age' is violated for column 'age'", "age"],
+            ["CHECK constraint failed for column 'salary'", "salary"],
+
+            // Incorrect value/data type errors
+            ["Incorrect integer value 'abc' for column 'quantity' at row 1", "quantity"],
+            ["Incorrect decimal value for column 'price' at row 1", "price"],
+            ["Incorrect datetime value '2023-13-45' for column 'created_at' at row 1", "created_at"],
+
+            // Auto-increment errors
+            ["Duplicate entry '123' for key 'PRIMARY' in column 'id'", "id"],
+
+            // JSON column errors
+            ["Invalid JSON text in column 'metadata' at position 0", "metadata"],
+            ["JSON column 'settings' cannot be null", "settings"],
+
+            // ENUM errors
+            ["Data truncated for column 'status' at row 1", "status"],
+
+            // Index-related column errors
+            ["Duplicate entry 'test@example.com' for key 'users.email'", "email"],
+            ["Key column 'user_id' doesn't exist in table", "user_id"],
+
+            // PostgreSQL specific
+            ["ERROR: null value in column 'name' violates not-null constraint", "name"],
+            ['ERROR: column "first_name" of relation "users" does not exist', "first_name"],
+
+            // SQL Server specific
+            ["Cannot insert the value NULL into column 'phone', table 'dbo.users'", "phone"],
+            ["Conversion failed when converting the varchar value 'text' to data type int for column 'count'", "count"],
+
+            // Oracle specific
+            ["ORA-01400: cannot insert NULL into ('SCHEMA'.'TABLE'.'COLUMN_NAME')", "COLUMN_NAME"],
+            ["ORA-01722: invalid number for column 'amount'", "amount"],
+
+            // Unique constraint with column
+            ["UNIQUE constraint failed: users.username", "username"],
+            ["Duplicate entry 'admin' for key 'users.username'", "username"],
         ];
     }
 }

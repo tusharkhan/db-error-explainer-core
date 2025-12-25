@@ -31,6 +31,7 @@ class TestExtractConstraint extends TestCase
             ['SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`testdb`.`orders`, CONSTRAINT `fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`))', 'fk_user_id'],
             ['SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`shop`.`order_items`, CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`))', 'order_items_ibfk_1'],
             ['Cannot add or update a child row: a foreign key constraint fails (CONSTRAINT `fk_category_id` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`))', 'fk_category_id'],
+            ["Error 1452: Cannot add or update a child row: a foreign key constraint fails (mydb.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))", 'orders_user_id_foreign'],
 
             // MySQL/MariaDB - NOT NULL constraint violations
             ['SQLSTATE[23000]: Integrity constraint violation: 1048 Column \'name\' cannot be null', 'name'],
