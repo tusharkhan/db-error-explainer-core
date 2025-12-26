@@ -68,9 +68,9 @@ class ExceptionNormalizer
         return Helpers::extractColumn($message);
     }
 
-    private function extractConstraint(string $message): ?string
+    private function extractConstraint(string $message): array
     {
-        return Helpers::extractConstraint($message);
+        return Helpers::extractAllConstraints($message);
     }
 
     private function extractDatabase(string $message): ?string

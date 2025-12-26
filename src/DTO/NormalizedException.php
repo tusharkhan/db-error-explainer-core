@@ -16,7 +16,7 @@ readonly class NormalizedException
         public ?string $stateSubClass = null,
         public ?string $table = null,
         public ?string $column = null,
-        public ?string $constraint = null,
+        public array $constraint = [],
         public ?string $database = null,
         public array   $rawData = []
     ) {}

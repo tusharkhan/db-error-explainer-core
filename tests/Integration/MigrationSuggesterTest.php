@@ -29,8 +29,8 @@ class MigrationSuggesterTest extends TestCase
     {
         return [
             [
-                "Error 1452: Cannot add or update a child row: a foreign key constraint fails (mydb.orders, CONSTRAINTorders_user_id_foreign FOREIGN KEY (user_id) REFERENCESusers(id))",
-                "// Add foreign key constraint ALTER TABLE mydb.orders ADD CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE;"
+                "Error 1452: Cannot add or update a child row: a foreign key constraint fails (test.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))",
+                "// Add foreign key constraint ALTER TABLE test.orders ADD CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE;"
             ],
             [
                 'ERROR: insert or update on table "orders" violates foreign key constraint "fk_user" DETAIL: Key (user_id)=(99) is not present in table "users".',

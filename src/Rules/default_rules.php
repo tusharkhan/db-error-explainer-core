@@ -1051,18 +1051,12 @@ return [
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/foreign key constraint fails.*Cannot add or update/i',
         'extract' => function($normalized) {
-            // Extract table and column from error message
-            preg_match('/CONSTRAINT `([^`]+)`/', $normalized->message, $constraint);
-            preg_match('/FOREIGN KEY \(`([^`]+)`\)/', $normalized->message, $column);
-            preg_match('/REFERENCES `([^`]+)`/', $normalized->message, $parentTable);
-            preg_match('/\(`([^`]+)`\)/', $normalized->message, $parentColumn);
-
             return [
                 'table' => $normalized->table ?? 'unknown',
-                'column' => $column[1] ?? 'unknown',
-                'parent_table' => $parentTable[1] ?? 'unknown',
-                'constraint' => $constraint[1] ?? null,
-                'parent_column' => $parentColumn[1] ?? null
+                'column' => $normalized->constraint['referenced_column'] ?? 'unknown',
+                'parent_table' => $normalized->constraint['referenced_table'] ?? 'unknown',
+                'constraint' => $normalized->constraint['constraint_name'] ?? 'unknown',
+                'parent_column' => $normalized->constraint['column'] ?? 'unknown'
             ];
         },
         'explanation' => 'Foreign key constraint violation: The value you are trying to insert or update in column "{column}" does not exist in the parent table "{parent_table}". You must first insert the referenced record in the parent table.',
