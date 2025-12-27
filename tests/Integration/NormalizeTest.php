@@ -54,4 +54,22 @@ class NormalizeTest extends TestCase
         $this->assertSame('S02', $normalized->stateSubClass);
         $this->assertSame('42', $normalized->stateClass);
     }
+
+    public function test_column_not_found()
+    {
+        $exception = Helpers::fakePdoException(
+            "Error 1054: Unknown column 'user_email' in 'field list'",
+            ['42S22', 1054, "Unknown column 'user_email' in 'field list'"],
+            1054
+        );
+
+        $normalizer = new ExceptionNormalizer();
+        $normalized = $normalizer->normalize($exception);
+        $this->assertSame("Error 1054: Unknown column 'user_email' in 'field list'", $normalized->message);
+        $this->assertSame(1054, $normalized->code);
+        $this->assertSame('42S22', $normalized->sqlState);
+        $this->assertSame('S22', $normalized->stateSubClass);
+        $this->assertSame('42', $normalized->stateClass);
+        print_r($normalized);
+    }
 }

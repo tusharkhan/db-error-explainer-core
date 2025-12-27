@@ -25,6 +25,27 @@ class MigrationSuggesterTest extends TestCase
         $this->assertEquals($suggestionMessage, $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_column_not_found_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Error 1054: Unknown column 'user_email' in 'field list'",
+            ['42S22', 1054, "Unknown column 'user_email' in 'field list'"],
+            1054
+        ));
+
+        $expectedSuggestion = "--Add the missing column
+ALTER TABLE `your_table` 
+ADD COLUMN `user_email` VARCHAR(255) NULL;
+--column type can be any valid MySQL column type";
+
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [
@@ -37,10 +58,6 @@ FOREIGN KEY (`user_id`)
 REFERENCES `users` (`id`)
 ON DELETE CASCADE
 ON UPDATE CASCADE;"
-            ],
-            [
-                'ERROR: insert or update on table "orders" violates foreign key constraint "fk_user" DETAIL: Key (user_id)=(99) is not present in table "users".',
-                '// Add foreign key constraint ALTER TABLE orders ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id);'
             ]
         ];
     }

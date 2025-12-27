@@ -1152,12 +1152,9 @@ return [
         'sqlstate' => [MySqlStates::COLUMN_NOT_FOUND],
         'message_regex' => '/Unknown column .* in/i',
         'extract' => function($normalized) {
-            preg_match('/Unknown column \'([^\']+)\' in \'([^\']+)\'/', $normalized->message, $matches);
-
             return [
-                'column' => $normalized->column ?? 'unknown',
-                'clause' => $matches[2] ?? 'field list',
-                'table' => $normalized->table ?? 'unknown',
+                'column' => $normalized->column ?? 'your_column',
+                'table' => $normalized->table ?? 'your_table',
             ];
         },
         'explanation' => 'Unknown column: Column "{column}" does not exist in the table. You may have a typo or the column needs to be added via migration.',

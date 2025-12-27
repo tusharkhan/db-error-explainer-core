@@ -64,11 +64,13 @@ class MigrationSuggester
     /**
      * Generate an ADD COLUMN migration suggestion
      */
-    public function suggestAddColumn(string $tableName, string $columnName, string $type = 'VARCHAR(255)', bool $nullable = false): string
+    public function suggestAddColumn(string $tableName, string $columnName, string $type = 'VARCHAR(255)', bool $nullable = true): string
     {
-        $migration = "--Add the missing column\n";
-        $migration .= "ALTER TABLE `{$tableName}` \n";
-        $migration .= "ADD COLUMN `{$columnName}` {$type}";
+        $migration = <<<SQL
+    --Add the missing column
+    ALTER TABLE `{$tableName}` 
+    ADD COLUMN `{$columnName}` {$type}
+    SQL;
 
         if ($nullable) {
             $migration .= " NULL";
@@ -76,7 +78,8 @@ class MigrationSuggester
             $migration .= " NOT NULL";
         }
 
-        $migration .= "; --column type can be any valid MySQL column type";
+        $migration .= ";
+--column type can be any valid MySQL column type";
 
         return $migration;
     }
