@@ -46,6 +46,27 @@ ADD COLUMN `user_email` VARCHAR(255) NULL;
         $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_table_not_found_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Error 1146: Table 'test.non_existent_table' doesn't exist",
+            ['42S02', 1146, "Table 'test.non_existent_table' doesn't exist"],
+            1146
+        ));
+
+        $expectedSuggestion = "--Create the missing table
+CREATE TABLE `test.non_existent_table` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [
