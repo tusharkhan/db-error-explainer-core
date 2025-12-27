@@ -1104,18 +1104,14 @@ return [
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Duplicate entry .* for key/i',
         'extract' => function($normalized) {
-            preg_match('/Duplicate entry \'([^\']+)\' for key \'([^\']+)\'/', $normalized->message, $matches);
-
             return [
-                'table' => $normalized->table ?? 'unknown',
-                'value' => $matches[1] ?? 'unknown',
-                'key' => $matches[2] ?? 'unknown',
+                'table' => $normalized->table ?? 'your_table',
+                'column' => $normalized->constraint['column'] ?? 'unknown',
             ];
         },
         'explanation' => 'Duplicate entry: A record with the value "{value}" already exists for the unique key "{key}". You cannot insert duplicate values in unique or primary key columns.',
         'migration' => function($ctx) {
-            return "-- If this unique constraint is incorrect, remove it:
-                                ALTER TABLE `{$ctx['table']}` DROP INDEX `{$ctx['key']}`";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::DUPLICATE_ENTRY, $ctx))->suggest();
         },
     ],
 

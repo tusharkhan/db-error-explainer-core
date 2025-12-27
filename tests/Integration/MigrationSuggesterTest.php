@@ -46,6 +46,24 @@ ADD COLUMN `user_email` VARCHAR(255) NULL;
         $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_duplicate_entry_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Error 1062: Duplicate entry 'example@gmail.com' for key 'users_email_unique'",
+            ['23000', 1062, "Duplicate entry 'example@gmail.com' for key 'users_email_unique'"],
+            1062
+        ));
+
+        $expectedSuggestion = "-- If this unique constraint is incorrect, remove it:
+ALTER TABLE `your_table`
+DROP INDEX `users_email_unique`;
+-- If this unique constraint is incorrect, remove it";
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public function test_table_not_found_suggestion()
     {
         $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');

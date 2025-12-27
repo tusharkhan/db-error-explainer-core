@@ -28,6 +28,7 @@ class MigrationSuggester
                     $this->context['on_update'] ?? 'CASCADE'
                 ),
                 RuleIds::UNKNOWN_COLUMN => $this->suggestAddColumn($this->context['table'], $this->context['column']),
+                RuleIds::DUPLICATE_ENTRY => $this->suggestRemoveUniqueConstraint($this->context['table'], $this->context['column']),
                 default => ''
             },
             'other_suggestions' => ''
@@ -146,6 +147,18 @@ class MigrationSuggester
         $migration = "// Modify column type\n";
         $migration .= "ALTER TABLE `{$tableName}` \n";
         $migration .= "MODIFY COLUMN `{$columnName}` {$newType};";
+
+        return $migration;
+    }
+
+    public function suggestRemoveUniqueConstraint(string $tableName, string $constraintName): string
+    {
+        $migration = <<<SQL
+        -- If this unique constraint is incorrect, remove it:
+        ALTER TABLE `{$tableName}`
+        DROP INDEX `{$constraintName}`;
+        -- If this unique constraint is incorrect, remove it
+        SQL;
 
         return $migration;
     }
