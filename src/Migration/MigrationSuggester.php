@@ -18,9 +18,11 @@ class MigrationSuggester
             'migration_suggestion' => match ($this->ruleId) {
                 RuleIds::TABLE_NOT_FOUND => $this->suggestCreateTable($this->context),
                 RuleIds::FK_MISSING_PARENT => $this->suggestAddForeignKey(
+                    $this->context['database'],
                     $this->context['table'],
                     $this->context['column'],
                     $this->context['parent_table'],
+                    $this->context['parent_column'] ?? 'id',
                     $this->context['referenced_column'] ?? 'id',
                     $this->context['on_delete'] ?? 'CASCADE',
                     $this->context['on_update'] ?? 'CASCADE'
@@ -38,7 +40,7 @@ class MigrationSuggester
     public function suggestCreateTable(array $context = []): string
     {
         $migration = "--Create the missing table\n";
-        $migration .= "CREATE TABLE `{$context['table']}` (\n";
+        $migration .= "CREATE TABLE `{$context['database']}.{$context['table']}` (\n";
         $migration .= "    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\n";
         $columns = $context['table_columns'] ?? [];
 
@@ -83,19 +85,21 @@ class MigrationSuggester
      * Generate a foreign key constraint suggestion
      */
     public function suggestAddForeignKey(
+        string $database,
         string $tableName,
         string $columnName,
         string $referencedTable,
+        string $parentColumn = 'id',
         string $referencedColumn = 'id',
         string $onDelete = 'CASCADE',
         string $onUpdate = 'CASCADE'
     ): string {
-        $constraintName = "{$tableName}_{$columnName}_foreign";
+        $constraintName = "{$tableName}_{$parentColumn}_foreign";
 
         $migration = "// Add foreign key constraint \n";
-        $migration .= "ALTER TABLE `{$tableName}` \n";
+        $migration .= "ALTER TABLE `{$database}.{$tableName}` \n";
         $migration .= "ADD CONSTRAINT `{$constraintName}` \n";
-        $migration .= "FOREIGN KEY (`{$columnName}`) \n";
+        $migration .= "FOREIGN KEY (`{$parentColumn}`) \n";
         $migration .= "REFERENCES `{$referencedTable}` (`{$referencedColumn}`) \n";
         $migration .= "ON DELETE {$onDelete} \n";
         $migration .= "ON UPDATE {$onUpdate};";

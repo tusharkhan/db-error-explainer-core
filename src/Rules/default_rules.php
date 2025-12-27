@@ -1052,6 +1052,7 @@ return [
         'message_regex' => '/foreign key constraint fails.*Cannot add or update/i',
         'extract' => function($normalized) {
             return [
+                'database' => $normalized->database ?? 'unknown',
                 'table' => $normalized->table ?? 'unknown',
                 'column' => $normalized->constraint['referenced_column'] ?? 'unknown',
                 'parent_table' => $normalized->constraint['referenced_table'] ?? 'unknown',
@@ -1172,11 +1173,9 @@ return [
         'sqlstate' => [MySqlStates::TABLE_OR_VIEW_NOT_FOUND],
         'message_regex' => '/Table .* doesn\'t exist/i',
         'extract' => function($normalized) {
-            preg_match('/Table \'([^\']+)\.([^\']+)\' doesn\'t exist/', $normalized->message, $matches);
-
             return [
-                'database' => $matches[1] ?? 'unknown',
-                'table' => $matches[2] ?? ($normalized->table ?? 'unknown'),
+                'database' => $normalized->database ?? 'unknown',
+                'table' => $normalized->table ?? 'unknown',
             ];
         },
         'explanation' => 'Table not found: The table "{table}" does not exist in the database. You need to create it via migration or run pending migrations.',
