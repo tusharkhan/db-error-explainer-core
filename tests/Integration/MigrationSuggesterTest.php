@@ -85,6 +85,24 @@ CREATE TABLE `test.non_existent_table` (
         $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_null_constrains_violation()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Column 'name' cannot be null",
+            ['23000', 1048, "Column 'name' cannot be null"],
+            1048
+        ));
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals("--Option 1: Make the column nullable:
+ALTER TABLE `your_table` MODIFY `name` VARCHAR(255) NULL;
+
+--Option 2: Set a default value:
+ALTER TABLE `your_table` MODIFY `name` VARCHAR(255) NOT NULL DEFAULT 'default_value';", $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [

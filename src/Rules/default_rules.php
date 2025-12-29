@@ -1107,6 +1107,7 @@ return [
             return [
                 'table' => $normalized->table ?? 'your_table',
                 'column' => $normalized->constraint['column'] ?? 'unknown',
+                'constraint' => $normalized->constraint['constraint_name'] ?? 'unknown_constraint',
             ];
         },
         'explanation' => 'Duplicate entry: A record with the value "{value}" already exists for the unique key "{key}". You cannot insert duplicate values in unique or primary key columns.',
@@ -1122,22 +1123,14 @@ return [
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION, MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Column .* cannot be null|doesn\'t have a default value/i',
         'extract' => function($normalized) {
-            preg_match('/Column \'([^\']+)\' cannot be null/', $normalized->message, $matches);
-            if (empty($matches)) {
-                preg_match('/Field \'([^\']+)\' doesn\'t have a default value/', $normalized->message, $matches);
-            }
-
             return [
-                'table' => $normalized->table ?? 'unknown',
-                'column' => $matches[1] ?? 'unknown',
+                'table' => $normalized->table ?? 'your_table',
+                'column' => $normalized->column ?? 'unknown',
             ];
         },
         'explanation' => 'NULL constraint violation: Column "{column}" requires a value but received NULL. You must provide a value or make the column nullable.',
         'migration' => function($ctx) {
-            $makeColumnNullable = "-- Option 1: Make the column nullable: \n\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL";
-            $setDefaultValue = "-- Option 2: Set a default value: \n\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NOT NULL DEFAULT 'value';";
-
-            return "{$makeColumnNullable}\n\n{$setDefaultValue}";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::NULL_CONSTRAINT_VIOLATION, $ctx))->suggest();
         },
     ],
 

@@ -2,164 +2,104 @@
 
 namespace TusharKhan\DbErrorExplainer\Migration;
 
-use TusharKhan\DbErrorExplainer\Lib\RuleIds;
+use TusharKhan\DbErrorExplainer\Migration\Contracts\MigrationGeneratorInterface;
 
 /**
  * Migration Suggester
- * Generates migration code suggestions for fixing database errors
+ *
+ * Generates migration code suggestions for fixing database errors.
+ * Uses a registry of specialized generators for different error types.
  */
 class MigrationSuggester
 {
-    public function __construct(protected string $ruleId, protected array $context = []){}
+    /**
+     * Generator registry
+     */
+    private MigrationGeneratorRegistry $registry;
 
-    public function suggest()
+    /**
+     * Create a new MigrationSuggester
+     *
+     * @param string $ruleId The rule ID to generate migration for
+     * @param array $context Context data for generating the migration
+     * @param MigrationGeneratorRegistry|null $registry Custom registry (uses defaults if null)
+     */
+    public function __construct(
+        protected string $ruleId,
+        protected array $context = [],
+        ?MigrationGeneratorRegistry $registry = null
+    ) {
+        $this->registry = $registry ?? MigrationGeneratorRegistry::createWithDefaults();
+    }
+
+    /**
+     * Generate migration suggestion
+     *
+     * @return array{migration_suggestion: string, other_suggestions: string}
+     */
+    public function suggest(): array
     {
+        $migrationSuggestion = $this->registry->generate($this->ruleId, $this->context);
+
         return [
-            'migration_suggestion' => match ($this->ruleId) {
-                RuleIds::TABLE_NOT_FOUND => $this->suggestCreateTable($this->context),
-                RuleIds::FK_MISSING_PARENT => $this->suggestAddForeignKey(
-                    $this->context['database'],
-                    $this->context['table'],
-                    $this->context['column'],
-                    $this->context['parent_table'],
-                    $this->context['parent_column'] ?? 'id',
-                    $this->context['referenced_column'] ?? 'id',
-                    $this->context['on_delete'] ?? 'CASCADE',
-                    $this->context['on_update'] ?? 'CASCADE'
-                ),
-                RuleIds::UNKNOWN_COLUMN => $this->suggestAddColumn($this->context['table'], $this->context['column']),
-                RuleIds::DUPLICATE_ENTRY => $this->suggestRemoveUniqueConstraint($this->context['table'], $this->context['column']),
-                default => ''
-            },
-            'other_suggestions' => ''
+            'migration_suggestion' => $migrationSuggestion ?? '',
+            'other_suggestions' => $this->getOtherSuggestions(),
         ];
     }
 
     /**
-     * Generate a CREATE TABLE migration suggestion
+     * Get additional suggestions based on the rule
+     *
+     * @return string
      */
-    public function suggestCreateTable(array $context = []): string
+    private function getOtherSuggestions(): string
     {
-        $migration = "--Create the missing table\n";
-        $migration .= "CREATE TABLE `{$context['database']}.{$context['table']}` (\n";
-        $migration .= "    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\n";
-        $columns = $context['table_columns'] ?? [];
-
-        foreach ($columns as $column) {
-            $migration .= "    `{$column['name']}` {$column['type']}";
-            if (!empty($column['nullable'])) {
-                $migration .= " NULL";
-            } else {
-                $migration .= " NOT NULL";
-            }
-            $migration .= ",\n";
-        }
-
-        $migration .= "    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n";
-        $migration .= "    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n";
-        $migration .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
-
-        return $migration;
+        // Can be extended to provide additional suggestions
+        return '';
     }
 
     /**
-     * Generate an ADD COLUMN migration suggestion
+     * Check if a migration suggestion is available for the current rule
+     *
+     * @return bool
      */
-    public function suggestAddColumn(string $tableName, string $columnName, string $type = 'VARCHAR(255)', bool $nullable = true): string
+    public function hasSuggestion(): bool
     {
-        $migration = <<<SQL
-    --Add the missing column
-    ALTER TABLE `{$tableName}` 
-    ADD COLUMN `{$columnName}` {$type}
-    SQL;
-
-        if ($nullable) {
-            $migration .= " NULL";
-        } else {
-            $migration .= " NOT NULL";
-        }
-
-        $migration .= ";
---column type can be any valid MySQL column type";
-
-        return $migration;
+        return $this->registry->hasGenerator($this->ruleId);
     }
 
     /**
-     * Generate a foreign key constraint suggestion
+     * Get the underlying generator for the current rule
+     *
+     * @return MigrationGeneratorInterface|null
      */
-    public function suggestAddForeignKey(
-        string $database,
-        string $tableName,
-        string $columnName,
-        string $referencedTable,
-        string $parentColumn = 'id',
-        string $referencedColumn = 'id',
-        string $onDelete = 'CASCADE',
-        string $onUpdate = 'CASCADE'
-    ): string {
-        $constraintName = "{$tableName}_{$parentColumn}_foreign";
-
-        $migration = "// Add foreign key constraint \n";
-        $migration .= "ALTER TABLE `{$database}.{$tableName}` \n";
-        $migration .= "ADD CONSTRAINT `{$constraintName}` \n";
-        $migration .= "FOREIGN KEY (`{$parentColumn}`) \n";
-        $migration .= "REFERENCES `{$referencedTable}` (`{$referencedColumn}`) \n";
-        $migration .= "ON DELETE {$onDelete} \n";
-        $migration .= "ON UPDATE {$onUpdate};";
-
-        return $migration;
+    public function getGenerator(): ?MigrationGeneratorInterface
+    {
+        return $this->registry->findGenerator($this->ruleId);
     }
 
     /**
-     * Generate a unique constraint suggestion
+     * Get the registry
+     *
+     * @return MigrationGeneratorRegistry
      */
-    public function suggestAddUniqueConstraint(string $tableName, array $columns): string
+    public function getRegistry(): MigrationGeneratorRegistry
     {
-        $constraintName = "{$tableName}_" . implode('_', $columns) . "_unique";
-        $columnList = implode('`, `', $columns);
-
-        $migration = "// Add unique constraint\n";
-        $migration .= "ALTER TABLE `{$tableName}` \n";
-        $migration .= "ADD CONSTRAINT `{$constraintName}` \n";
-        $migration .= "UNIQUE (`{$columnList}`);";
-
-        return $migration;
+        return $this->registry;
     }
 
     /**
-     * Generate a drop constraint suggestion
+     * Static factory method for quick suggestions
+     *
+     * @param string $ruleId
+     * @param array $context
+     * @return string
      */
-    public function suggestDropConstraint(string $tableName, string $constraintName, string $type = 'FOREIGN KEY'): string
+    public static function for(string $ruleId, array $context = []): string
     {
-        $migration = "// Drop the constraint\n";
-        $migration .= "ALTER TABLE `{$tableName}` \n";
-        $migration .= "DROP {$type} `{$constraintName}`;";
+        $suggester = new self($ruleId, $context);
+        $result = $suggester->suggest();
 
-        return $migration;
-    }
-
-    /**
-     * Generate a modify column suggestion
-     */
-    public function suggestModifyColumn(string $tableName, string $columnName, string $newType): string
-    {
-        $migration = "// Modify column type\n";
-        $migration .= "ALTER TABLE `{$tableName}` \n";
-        $migration .= "MODIFY COLUMN `{$columnName}` {$newType};";
-
-        return $migration;
-    }
-
-    public function suggestRemoveUniqueConstraint(string $tableName, string $constraintName): string
-    {
-        $migration = <<<SQL
-        -- If this unique constraint is incorrect, remove it:
-        ALTER TABLE `{$tableName}`
-        DROP INDEX `{$constraintName}`;
-        -- If this unique constraint is incorrect, remove it
-        SQL;
-
-        return $migration;
+        return $result['migration_suggestion'];
     }
 }
