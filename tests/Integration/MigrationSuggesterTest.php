@@ -195,6 +195,55 @@ CREATE TABLE IF NOT EXISTS `existing_table` (
         $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_wrong_value_for_type_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Incorrect integer value: 'abc' for column 'age' at row 1",
+            ['21S01', 1366, "Incorrect integer value: 'abc' for column 'age' at row 1"],
+            1366
+        ));
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEmpty($diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
+    public function test_data_truncated_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Data truncated for column 'description' at row 1",
+            ['01000', 1265, "Data truncated for column 'description' at row 1"],
+            1265
+        ));
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals("--Modify column type to accommodate the data
+ALTER TABLE `your_table`
+MODIFY `description` VARCHAR(255);
+--Common type upgrades:
+--  VARCHAR(n) -> VARCHAR(larger_n) or TEXT
+--  INT -> BIGINT
+--  FLOAT -> DOUBLE or DECIMAL(p,s)
+", $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
+    public function test_ambiguous_column_name_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Column 'id' in field list is ambiguous",
+            ['HY000', 1475, "Column 'id' in field list is ambiguous"],
+            1475
+        ));
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals("-- The column name `id` is ambiguous because it exists in multiple tables used in the query.
+-- To resolve this, prefix the column with the appropriate table name or alias, e.g., `table_name.id`.", $diagnosis->migrationSuggestion['migration_suggestion']);
+    }   
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [

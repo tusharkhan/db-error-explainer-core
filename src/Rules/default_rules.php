@@ -403,7 +403,12 @@ return [
             return ['row' => $matches[1] ?? '1'];
         },
         'explanation' => 'Wrong value count: The number of columns does not match the number of values at row {row}. Ensure INSERT values match the column count.',
-        'migration' => function($ctx) { return ''; }
+        'migration' => function($ctx) { 
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => 'Check your INSERT statement to ensure the number of values matches the number of columns specified.'
+            ];
+         }
     ],
     [
         'id' => RuleIds::CANT_REOPEN_TABLE,
@@ -740,11 +745,12 @@ return [
         'sqlstate' => [MySqlStates::WARNING],
         'message_regex' => '/Data truncated for column/i',
         'extract' => function($normalized) {
-            preg_match("/column '([^']+)'/", $normalized->message, $matches);
-            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+            return ['column' => $normalized->column ?? 'your_column', 'table' => $normalized->table ?? 'your_table'];
         },
         'explanation' => 'Data truncated: Data was truncated for column "{column}". The value is too large or of incorrect format.',
-        'migration' => function($ctx) { return ''; }
+        'migration' => function($ctx) { 
+            return (new MigrationSuggester(RuleIds::DATA_TRUNCATED, $ctx))->suggest();
+         }
     ],
     [
         'id' => RuleIds::WARN_USING_OTHER_HANDLER,
@@ -1328,11 +1334,11 @@ return [
         'message_regex' => '/Column \'([^\']+)\' in (where|field list|order clause) is ambiguous/i',
         'extract' => function($normalized) {
             preg_match('/Column \'([^\']+)\' in (where|field list|order clause) is ambiguous/', $normalized->message, $matches);
-            return ['column' => $matches[1] ?? 'unknown', 'clause' => $matches[2] ?? 'unknown'];
+            return ['column' => $normalized->column ?? 'your_column', 'clause' => $matches[2] ?? 'unknown'];
         },
         'explanation' => 'Ambiguous column name: The column "{column}" is ambiguous in the {clause}. You need to qualify it with the table name or alias.',
         'migration' => function($ctx) {
-            return "-- Qualify the column with table name or alias:\n\nSELECT t.`{$ctx['column']}` FROM `{$ctx['table']}` AS t WHERE t.`{$ctx['column']}` = 'value';";
+            return (new MigrationSuggester(RuleIds::AMBIGUOUS_COLUMN_NAME, $ctx))->suggest();
         }
     ],
     [
