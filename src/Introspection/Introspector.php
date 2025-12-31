@@ -142,4 +142,32 @@ class Introspector
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
     }
+
+    public function getColumnType(?string $table, ?string $column, ?string $database)
+    {
+        if (!$table || !$column) {
+            return null;
+        }
+
+        $sql = "SELECT DATA_TYPE 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_NAME = :table 
+                AND COLUMN_NAME = :column";
+
+        $params = [
+            'table' => $table,
+            'column' => $column
+        ];
+
+        if ($database) {
+            $sql .= " AND TABLE_SCHEMA = :database";
+            $params['database'] = $database;
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['DATA_TYPE'] : null;
+    }
 }

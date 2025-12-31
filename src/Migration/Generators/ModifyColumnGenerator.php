@@ -32,8 +32,8 @@ class ModifyColumnGenerator extends AbstractMigrationGenerator
     }
 
     private function generateModifyColumnMigration(array $context): string {
-        $table = $context['table'] ?? 'unknown_table';
-        $column = $context['column'] ?? 'unknown_column';
+        $table = $context['table'] ?? 'your_table';
+        $column = $context['column'] ?? 'your_column';
         $newType = $context['new_type'] ?? $context['suggested_type'] ?? 'VARCHAR(255)';
         $database = $context['database'] ?? null;
 
@@ -41,8 +41,7 @@ class ModifyColumnGenerator extends AbstractMigrationGenerator
 
         $migration = $this->sqlComment("Modify column type to accommodate the data");
         $migration .= "ALTER TABLE {$tableRef}\n";
-        $migration .= "MODIFY COLUMN `{$column}` {$newType};\n";
-        $migration .= "\n";
+        $migration .= "MODIFY `{$column}` {$newType};\n";
         $migration .= $this->sqlComment("Common type upgrades:");
         $migration .= $this->sqlComment("  VARCHAR(n) -> VARCHAR(larger_n) or TEXT");
         $migration .= $this->sqlComment("  INT -> BIGINT");

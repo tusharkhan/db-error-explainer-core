@@ -175,6 +175,10 @@ class Explainer
             );
             $context['table_columns'] = array_column($columns, 'COLUMN_NAME');
 
+            // get column type
+            $columnType = $this->introspector->getColumnType($normalized->table, $normalized->column, $normalized->database);
+            $context['column_type'] = $columnType;
+
         } catch (Throwable $e) {
             $this->logger->logWarning('Introspection failed', [
                 'table' => $normalized->table,

@@ -175,13 +175,13 @@ return [
         'extract' => function($normalized) {
             preg_match("/Access denied for user '([^']+)'@'([^']+)'/", $normalized->message, $matches);
             return [
-                'user' => $matches[1] ?? 'unknown',
-                'host' => $matches[2] ?? 'unknown'
+                'user' => $matches[1] ?? 'root',
+                'host' => $matches[2] ?? 'localhost'
             ];
         },
         'explanation' => 'Access denied: User "{user}"@"{host}" is not authorized to access the database. Check your credentials and user permissions.',
         'migration' => function($ctx) { 
-            return "-- Grant access to user:\nGRANT ALL PRIVILEGES ON database_name.* TO '{$ctx['user']}'@'{$ctx['host']}';"; 
+            return (new MigrationSuggester(RuleIds::ACCESS_DENIED, $ctx))->suggest();
         }
     ],
     [
@@ -190,12 +190,11 @@ return [
         'sqlstate' => [MySqlStates::INVALID_CATALOG_NAME],
         'message_regex' => '/Unknown database/i',
         'extract' => function($normalized) {
-            preg_match("/Unknown database '([^']+)'/", $normalized->message, $matches);
-            return ['database' => $matches[1] ?? $normalized->database ?? 'unknown'];
+            return ['database' => $normalized->database ?? 'your_database'];
         },
         'explanation' => 'Unknown database: The database "{database}" does not exist. Create it first or check for typos in the database name.',
         'migration' => function($ctx) { 
-            return "CREATE DATABASE `{$ctx['database']}`;"; 
+            return (new MigrationSuggester(RuleIds::UNKNOWN_DATABASE, $ctx))->suggest();
         }
     ],
     [
@@ -1180,14 +1179,14 @@ return [
             preg_match('/Data too long for column \'([^\']+)\' at row (\d+)/', $normalized->message, $matches);
 
             return [
-                'table' => $normalized->table ?? 'unknown',
-                'column' => $matches[1] ?? 'unknown',
+                'table' => $normalized->table ?? 'your_table',
+                'column' => $matches[1] ?? 'your_column',
                 'row' => $matches[2] ?? 'unknown',
             ];
         },
         'explanation' => 'Data too long: The value for column "{column}" exceeds the maximum length defined in the schema. You need to either shorten the data or increase the column size.',
         'migration' => function($ctx) {
-                return "-- Increase the column size:\n\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL;\n\n --column type can be any valid MySQL column type";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::DATA_TOO_LONG, $ctx))->suggest();
         },
     ],
 
@@ -1241,20 +1240,11 @@ return [
         'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
         'message_regex' => '/You have an error in your SQL syntax/i',
         'extract' => function($normalized) {
-            return [
-                'query' => $normalized->sql ?? 'unknown',
-            ];
+            return null;
         },
         'explanation' => 'SQL syntax error: There is a syntax error in your SQL query. Check the query for typos, missing quotes, or incorrect SQL keywords.',
         'migration' => function($ctx) {
-            return "// This is a query syntax error, not a schema issue.\n"
-                . "// Review your query for:\n"
-                . "// - Missing or extra quotes\n"
-                . "// - Missing commas\n"
-                . "// - Incorrect SQL keywords\n"
-                . "// - Reserved words used as column names\n"
-                . "// \n"
-                . "// Query: {$ctx['query']}";
+            return (new MigrationSuggester(RuleIds::SYNTAX_ERROR, $ctx))->suggest();
         },
     ],
     [

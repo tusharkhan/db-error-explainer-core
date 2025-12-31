@@ -103,6 +103,76 @@ ALTER TABLE `your_table` MODIFY `name` VARCHAR(255) NULL;
 ALTER TABLE `your_table` MODIFY `name` VARCHAR(255) NOT NULL DEFAULT 'default_value';", $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_data_too_long()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Data too long for column 'name' at row 1",
+            ['22001', 1406, "Data too long for column 'name' at row 1"],
+            1406
+        ));
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals("--Modify column type to accommodate the data
+ALTER TABLE `your_table`
+MODIFY `name` VARCHAR(255);
+--Common type upgrades:
+--  VARCHAR(n) -> VARCHAR(larger_n) or TEXT
+--  INT -> BIGINT
+--  FLOAT -> DOUBLE or DECIMAL(p,s)
+", $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
+    public function test_syntax_error()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE `your_table`' at line 1",
+            ['42000', 1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE `your_table`' at line 1"],
+            1064
+        ));
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+
+        $this->assertEquals("--This is a query syntax error, not a schema issue.- Review your query for:- Missing or extra quotes- Missing commas- Incorrect SQL keywords- Reserved words used as column names\n", $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
+    public function test_access_denied_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Access denied for user 'test_user'@'localhost' (using password: YES)",
+            ['28000', 1045, "Access denied for user 'test_user'@'localhost' (using password: YES)"],
+            1045
+        ));
+
+        $expectedSuggestion = "--Grant access to user:
+GRANT ALL PRIVILEGES ON test_user.* TO 'test_user'@'%';";
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
+    public function test_unknown_database_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Unknown database 'non_existent_db'",
+            ['3D000', 1049, "Unknown database 'non_existent_db'"],
+            1049
+        ));
+
+        $expectedSuggestion = "-- Create the database:
+CREATE DATABASE `non_existent_db`;";
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [
