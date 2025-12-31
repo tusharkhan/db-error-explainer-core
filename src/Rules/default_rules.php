@@ -31,10 +31,7 @@ return [
         },
         'explanation' => 'Table already exists: The table "{table}" already exists. You may have a typo or the table needs to be deleted via migration.',
         'migration' => function($ctx) {
-            $message = "---\n// If this table is incorrect, remove it:\nDROP TABLE IF EXISTS `{$ctx['table']}`";
-            $message .= "\n\n---\n// Use if statement to create the table only if it doesn't exist:\nCREATE TABLE IF NOT EXISTS `{$ctx['table']}` (id INT PRIMARY KEY AUTO_INCREMENT); \n\n -- Add columns as needed";
-
-            return $message;
+            return (new MigrationSuggester(RuleIds::TABLE_ALREADY_EXISTS, $ctx))->suggest();
         }
     ],
     [
@@ -1076,7 +1073,7 @@ return [
             preg_match('/table `([^`]+)`\.`([^`]+)`/', $normalized->message, $childTable);
 
             return [
-                'table' => $normalized->table ?? 'unknown',
+                'table' => $normalized->table ?? 'your_table',
                 'child_table' => $childTable[2] ?? 'unknown',
                 'constraint' => $constraint[1] ?? null,
             ];

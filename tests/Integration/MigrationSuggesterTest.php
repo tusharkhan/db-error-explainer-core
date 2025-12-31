@@ -173,6 +173,28 @@ CREATE DATABASE `non_existent_db`;";
         $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
     }
 
+    public function test_table_exists_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Table 'test.existing_table' already exists",
+            ['42S01', 1050, "Table 'test.existing_table' already exists"],
+            1050
+        ));
+
+        $expectedSuggestion = "--If this table is incorrect, remove it:
+DROP TABLE IF EXISTS `existing_table`;
+--Use if statement to create the table only if it doesn't exist:
+CREATE TABLE IF NOT EXISTS `existing_table` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT
+);
+--Add columns as needed\n";
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [

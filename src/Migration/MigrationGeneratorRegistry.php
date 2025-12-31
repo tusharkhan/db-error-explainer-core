@@ -11,6 +11,7 @@ use TusharKhan\DbErrorExplainer\Migration\Generators\CreateTableGenerator;
 use TusharKhan\DbErrorExplainer\Migration\Generators\ForeignKeyGenerator;
 use TusharKhan\DbErrorExplainer\Migration\Generators\ModifyColumnGenerator;
 use TusharKhan\DbErrorExplainer\Migration\Generators\SyntaxErrorGenerator;
+use TusharKhan\DbErrorExplainer\Migration\Generators\TableExistGenerator;
 
 /**
  * Registry for migration generators
@@ -51,6 +52,7 @@ class MigrationGeneratorRegistry
         $registry->register(new SyntaxErrorGenerator());
         $registry->register(new AccessDeniedGenerator());
         $registry->register(new CreateDatabaseGenerator());
+        $registry->register(new TableExistGenerator());
 
         return $registry;
     }
