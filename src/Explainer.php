@@ -3,18 +3,16 @@
 namespace TusharKhan\DbErrorExplainer;
 
 use PDO;
+use Psr\Log\LoggerInterface;
 use Throwable;
+use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
 use TusharKhan\DbErrorExplainer\DTO\Diagnosis;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
-use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
-use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
-use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
-use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
 use TusharKhan\DbErrorExplainer\Introspection\Introspector;
-use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
+use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Logging\LoggerAdapter;
-use Psr\Log\LoggerInterface;
+use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
+use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
 
 /**
  * Main Explainer Class

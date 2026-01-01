@@ -2,8 +2,6 @@
 
 namespace TusharKhan\DbErrorExplainer\DTO;
 
-use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
-
 /**
  * Diagnosis Data Transfer Object
  * Contains the analysis result of a database error

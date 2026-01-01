@@ -2,7 +2,6 @@
 
 namespace TusharKhan\DbErrorExplainer\Migration\Generators;
 
-use TusharKhan\DbErrorExplainer\Lib\RuleIds;
 use TusharKhan\DbErrorExplainer\Migration\Contracts\MigrationGeneratorInterface;
 
 /**

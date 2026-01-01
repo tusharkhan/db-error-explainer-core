@@ -2,9 +2,9 @@
 
 namespace TusharKhan\DbErrorExplainer\Normalizer;
 
-use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
-use Throwable;
 use PDOException;
+use Throwable;
+use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Lib\Helpers;
 
 /**
