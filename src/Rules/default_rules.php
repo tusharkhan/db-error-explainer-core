@@ -66,7 +66,7 @@ return [
     ],
     [
         'id' => RuleIds::CANT_CREATE_TABLE,
-        'error_code' => MysqlErrorCodes::ER_CANT_CREATE_TABLE,
+        'error_code' => [MysqlErrorCodes::ER_CANT_CREATE_TABLE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create table/i',
         'extract' => function($normalized) {
