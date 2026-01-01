@@ -1079,23 +1079,17 @@ return [
             preg_match('/table `([^`]+)`\.`([^`]+)`/', $normalized->message, $childTable);
 
             return [
+                'database' => $normalized->database ?? 'your_database',
                 'table' => $normalized->table ?? 'your_table',
-                'child_table' => $childTable[2] ?? 'unknown',
-                'constraint' => $constraint[1] ?? null,
+                'column' => $normalized->constraint['referenced_column'] ?? 'your_column',
+                'parent_table' => $normalized->constraint['referenced_table'] ?? 'your_parent_table',
+                'constraint' => $normalized->constraint['constraint_name'] ?? 'unknown_constraint',
+                'parent_column' => $normalized->constraint['column'] ?? 'your_parent_column',
             ];
         },
         'explanation' => 'Foreign key constraint violation: Cannot delete this record because child records exist in table "{child_table}". You must first delete the dependent records or use CASCADE delete.',
         'migration' => function($ctx) {
-            $dropConstraint = "ALTER TABLE `{$ctx['child_table']}`
-                DROP FOREIGN KEY `{$ctx['constraint']}`";
-
-            $addConstraint = "ALTER TABLE `{$ctx['child_table']}`
-                ADD CONSTRAINT `fk_{$ctx['child_table']}_parent_id`
-                FOREIGN KEY (`parent_id`)
-                REFERENCES `{$ctx['table']}`(`id`)
-                ON DELETE CASCADE";
-
-            return "{$dropConstraint};\n{$addConstraint};";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::FK_CANNOT_DELETE_PARENT, $ctx))->suggest();
         },
     ],
 

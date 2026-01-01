@@ -256,7 +256,28 @@ FOREIGN KEY (`user_id`)
 REFERENCES `users` (`id`)
 ON DELETE CASCADE
 ON UPDATE CASCADE;"
-            ]
+            ],
+            [
+                "Error 1452: Cannot add or update a child row: a foreign key constraint fails (test.payments, CONSTRAINT payments_order_id_foreign FOREIGN KEY (order_id) REFERENCES orders(id))",
+                "// Add foreign key constraint
+ALTER TABLE `test.payments`
+ADD CONSTRAINT `payments_order_id_foreign`
+FOREIGN KEY (`order_id`)
+REFERENCES `orders` (`id`)
+ON DELETE CASCADE
+ON UPDATE CASCADE;"
+            ],
+            // RuleIds::FK_CANNOT_DELETE_PARENT
+            [
+                "Error 1451: Cannot delete or update a parent row: a foreign key constraint fails (test.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))",
+                "// Add foreign key constraint
+ALTER TABLE `test.orders`
+ADD CONSTRAINT `orders_user_id_foreign`
+FOREIGN KEY (`user_id`)
+REFERENCES `users` (`id`)
+ON DELETE CASCADE
+ON UPDATE CASCADE;"
+            ],
         ];
     }
 }
