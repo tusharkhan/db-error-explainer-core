@@ -12,6 +12,7 @@ class CreateTableGenerator extends AbstractMigrationGenerator
     protected array $supportedRuleIds = [
         RuleIds::TABLE_NOT_FOUND,
         RuleIds::UNKNOWN_TABLE,
+        RuleIds::CANT_CREATE_TABLE
     ];
 
     protected int $priority = 100;
@@ -27,7 +28,7 @@ class CreateTableGenerator extends AbstractMigrationGenerator
 
         $tableRef = $this->formatTableReference($database, $table);
 
-        $migration = "--Create the missing table\n";
+        $migration = $this->sqlComment("Create table");
         $migration .= "CREATE TABLE {$tableRef} (\n";
         $migration .= "    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\n";
 

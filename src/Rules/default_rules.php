@@ -70,13 +70,14 @@ return [
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create table/i',
         'extract' => function($normalized) {
-            // extract table name from error message
-            preg_match('/CREATE TABLE `([^`]+)`/', $normalized->message, $matches);
-            return ['table' => $matches[1] ?? 'unknown'];
+            return [
+                'table' => $normalized->table ?? 'your_table',
+                'database' => $normalized->database ?? 'your_database'
+            ];
         },
         'explanation' => 'Can\'t create table: There was an error creating the table "{table}". Check your table name or permissions.',
         'migration' => function($ctx) {
-            return 'CREATE TABLE `{$ctx["table"]}`.';
+            return (new MigrationSuggester(RuleIds::CANT_CREATE_TABLE, $ctx))->suggest();
         }
     ],
     

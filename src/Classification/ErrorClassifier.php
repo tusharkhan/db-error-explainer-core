@@ -48,10 +48,29 @@ class ErrorClassifier
      */
     private function ruleMatches(array $rule, NormalizedException $normalized): bool
     {
-        return (
-        (isset($rule['sqlstate']) && is_array($rule['sqlstate']) && $normalized->sqlState)
-            && (in_array($normalized->sqlState, $rule['sqlstate']))
-        ) && (isset($rule['error_code']) && is_array($rule['error_code']) && in_array($normalized->code, $rule['error_code']));
+        // Check SQLSTATE if defined in rule
+        if (isset($rule['sqlstate'])) {
+            $sqlStateMatches = is_array($rule['sqlstate'])
+                ? in_array($normalized->sqlState, $rule['sqlstate'])
+                : $normalized->sqlState === $rule['sqlstate'];
+            
+            if (!$sqlStateMatches) {
+                return false;
+            }
+        }
+
+        // Check error code if defined in rule
+        if (isset($rule['error_code'])) {
+            $codeMatches = is_array($rule['error_code'])
+                ? in_array($normalized->code, $rule['error_code'])
+                : $normalized->code === $rule['error_code'];
+            
+            if (!$codeMatches) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -244,6 +244,25 @@ MODIFY `description` VARCHAR(255);
 -- To resolve this, prefix the column with the appropriate table name or alias, e.g., `table_name.id`.", $diagnosis->migrationSuggestion['migration_suggestion']);
     }   
 
+    public function test_cant_create_table_suggestion()
+    {
+        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
+        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+            "Can't create table 'test.new_table' (errno: 150 'Foreign key constraint is incorrectly formed')",
+            ['HY000', 1005, "Can't create table 'test.new_table' (errno: 150 'Foreign key constraint is incorrectly formed')"],
+            1005
+        ));
+
+        $this->assertIsArray($diagnosis->migrationSuggestion);
+        $this->assertEquals("--Create table
+CREATE TABLE `test.new_table` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;", $diagnosis->migrationSuggestion['migration_suggestion']);
+    }
+
     public static function foreignKeyRulesDataProvider(): array
     {
         return [
