@@ -26,7 +26,11 @@ class ModifyColumnGenerator extends AbstractMigrationGenerator
     public function generate(array $context): string
     {
         return match ($context['rule_id'] ?? '') {
-            RuleIds::COLUMN_CHANGE_SIZE, RuleIds::WRONG_VALUE_FOR_TYPE, RuleIds::OUT_OF_RANGE, RuleIds::DATA_TOO_LONG, RuleIds::DATA_TRUNCATED => $this->generateModifyColumnMigration($context),
+            RuleIds::COLUMN_CHANGE_SIZE, 
+            RuleIds::WRONG_VALUE_FOR_TYPE, 
+            RuleIds::OUT_OF_RANGE, 
+            RuleIds::DATA_TOO_LONG, 
+            RuleIds::DATA_TRUNCATED => $this->generateModifyColumnMigration($context),
             RuleIds::NULL_CONSTRAINT_VIOLATION => $this->generateRemoveConstraintMigration($context),
         };
     }

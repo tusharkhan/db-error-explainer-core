@@ -51,7 +51,7 @@ return [
     ],
     [
         'id' => RuleIds::CANT_CREATE_FILE,
-        'error_code' => MysqlErrorCodes::ER_CANT_CREATE_FILE,
+        'error_code' => [MysqlErrorCodes::ER_CANT_CREATE_FILE],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Can\'t create file/i',
         'extract' => function($normalized) {
