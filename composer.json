@@ -1,7 +1,14 @@
 {
   "name": "tusharkhan/db-error-explainer-core",
   "description": "Framework-agnostic PHP library for analyzing and explaining database errors with actionable insights",
-  "keywords": ["database", "error", "mysql", "pdo", "debugging", "diagnosis"],
+  "keywords": [
+    "database",
+    "error",
+    "mysql",
+    "pdo",
+    "debugging",
+    "diagnosis"
+  ],
   "homepage": "https://github.com/tusharkhan/db-error-explainer-core",
   "license": "MIT",
   "authors": [
@@ -18,19 +25,27 @@
   "require": {
     "php": "^8.2",
     "ext-pdo": "*",
-    "psr/log": "^3.0"
+    "psr/log": "^3.0",
+    "tusharkhan/db-error-explainer-lib": "^1.0|@dev"
   },
   "require-dev": {
     "phpunit/phpunit": "^11.0",
     "phpstan/phpstan": "^1.10"
   },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../lib",
+      "options": {
+        "symlink": true
+      }
+    }
+  ],
   "autoload": {
     "psr-4": {
-      "TusharKhan\\DbErrorExplainer\\": "src/",
-      "TusharKhan\\DbErrorExplainer\\Lib\\": "../../Lib/"
+      "TusharKhan\\DbErrorExplainer\\": "src/"
     }
   },
   "minimum-stability": "stable",
   "prefer-stable": true
 }
-
