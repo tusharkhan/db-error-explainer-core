@@ -975,20 +975,20 @@ return [
     ],
     
     // Stored Procedure and Data Errors (1406-1411)
-    [
-        'id' => RuleIds::NO_DEFAULT_FOR_FIELD,
-        'error_code' => [MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
-        'sqlstate' => [MySqlStates::GENERAL_ERROR],
-        'message_regex' => '/Field .* doesn\'t have a default value/i',
-        'extract' => function($normalized) {
-            preg_match("/Field '([^']+)' doesn't have a default value/", $normalized->message, $matches);
-            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
-        },
-        'explanation' => 'No default value: Column "{column}" requires a value but none was provided and no default exists. Provide a value or set a default.',
-        'migration' => function($ctx) { 
-            return "-- Set a default value:\nALTER TABLE `{$ctx['table']}` ALTER COLUMN `{$ctx['column']}` SET DEFAULT 'value';\n\n-- Or make it nullable:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL;"; 
-        }
-    ],
+//    [
+//        'id' => RuleIds::NO_DEFAULT_FOR_FIELD,
+//        'error_code' => [MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
+//        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+//        'message_regex' => '/Field .* doesn\'t have a default value/i',
+//        'extract' => function($normalized) {
+//            preg_match("/Field '([^']+)' doesn't have a default value/", $normalized->message, $matches);
+//            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+//        },
+//        'explanation' => 'No default value: Column "{column}" requires a value but none was provided and no default exists. Provide a value or set a default.',
+//        'migration' => function($ctx) {
+//            return "-- Set a default value:\nALTER TABLE `{$ctx['table']}` ALTER COLUMN `{$ctx['column']}` SET DEFAULT 'value';\n\n-- Or make it nullable:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL;";
+//        }
+//    ],
     [
         'id' => RuleIds::SP_BAD_SQLSTATE,
         'error_code' => [MySqlErrorCodes::ER_SP_BAD_SQLSTATE],
@@ -1101,13 +1101,16 @@ return [
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Duplicate entry .* for key/i',
         'extract' => function($normalized) {
+            preg_match('/Duplicate entry \'([^\']+)\' for key \'([^\']+)\'/', $normalized->message, $matches);
             return [
                 'table' => $normalized->table ?? 'your_table',
                 'column' => $normalized->constraint['column'] ?? 'unknown',
                 'constraint' => $normalized->constraint['constraint_name'] ?? 'unknown_constraint',
+                'value' => $matches[1] ?? 'unknown',
+                'key' => $matches[2] ?? 'unknown'
             ];
         },
-        'explanation' => 'Duplicate entry: A record with the value "{value}" already exists for the unique key "{key}". You cannot insert duplicate values in unique or primary key columns.',
+        'explanation' => 'Duplicate entry: A record with the value "{value}" already exists for the unique key "{column}". You cannot insert duplicate values in unique or primary key columns.',
         'migration' => function($ctx) {
             return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::DUPLICATE_ENTRY, $ctx))->suggest();
         },
@@ -1118,7 +1121,7 @@ return [
         'id' => RuleIds::NULL_CONSTRAINT_VIOLATION,
         'error_code' => [MySqlErrorCodes::ER_BAD_NULL_ERROR, MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
         'sqlstate' => [MySqlStates::CONSTANT_VIOLATION, MySqlStates::GENERAL_ERROR],
-        'message_regex' => '/Column .* cannot be null|doesn\'t have a default value/i',
+        'message_regex' => '/Column .* cannot be null|does\'t have a default value/i',
         'extract' => function($normalized) {
             return [
                 'table' => $normalized->table ?? 'your_table',
@@ -1205,7 +1208,7 @@ return [
         },
         'explanation' => 'Out of range: The value for column "{column}" is too large or too small for the defined data type. You need to use a larger data type.',
         'migration' => function($ctx) {
-            return "-- Change the column type:\n\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` INT NULL;\n\n --column type can be any valid MySQL column type \n\n TINYINT → SMALLINT → MEDIUMINT → INT → BIGINT";
+            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::OUT_OF_RANGE, $ctx))->suggest();
         },
     ],
 
