@@ -168,7 +168,8 @@ return [
     [
         'id' => RuleIds::ACCESS_DENIED,
         'error_code' => [MySqlErrorCodes::ER_ACCESS_DENIED_ERROR],
-        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
+        // Connection-time errors arrive as HY000
+        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION, MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Access denied for user/i',
         'extract' => function($normalized) {
             preg_match("/Access denied for user '([^']+)'@'([^']+)'/", $normalized->message, $matches);
@@ -185,8 +186,8 @@ return [
     [
         'id' => RuleIds::UNKNOWN_DATABASE,
         'error_code' => [MySqlErrorCodes::ER_BAD_DB_ERROR],
-        // MySQL reports 42000; 3D000 is the standard SQLSTATE
-        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION, MySqlStates::INVALID_CATALOG_NAME],
+        // MySQL reports 42000 (HY000 when connecting); 3D000 is the standard SQLSTATE
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION, MySqlStates::INVALID_CATALOG_NAME, MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Unknown database/i',
         'extract' => function($normalized) {
             return ['database' => $normalized->database ?? 'your_database'];
@@ -213,7 +214,7 @@ return [
     [
         'id' => RuleIds::AMBIGUOUS_COLUMN,
         'error_code' => [MySqlErrorCodes::ER_NON_UNIQ_ERROR],
-        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION],
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION, MySqlStates::CONSTANT_VIOLATION],
         'message_regex' => '/Column .* in .* is ambiguous/i',
         'extract' => function($normalized) {
             preg_match("/Column '([^']+)'/", $normalized->message, $matches);
@@ -1845,6 +1846,198 @@ return [
         'migration' => function ($ctx) {
             return '';
         }
-    ]
-];
+    ],
 
+    // Common application errors
+    [
+        'id' => RuleIds::INCORRECT_VALUE,
+        'error_code' => [MySqlErrorCodes::ER_TRUNCATED_WRONG_VALUE_FOR_FIELD, MySqlErrorCodes::ER_TRUNCATED_WRONG_VALUE],
+        'message_regex' => '/Incorrect \w+ value/i',
+        'extract' => function($normalized) {
+            preg_match("/Incorrect (\w+) value: '(.*)' for column '([^']+)'/s", $normalized->message, $matches);
+            return [
+                'type' => $matches[1] ?? 'unknown',
+                'value' => $matches[2] ?? '',
+                'column' => $matches[3] ?? $normalized->column ?? 'your_column',
+            ];
+        },
+        'explanation' => 'Incorrect value: "{value}" is not a valid {type} for column "{column}". Validate or cast the value before saving it.',
+        'migration' => function($ctx) {
+            // "Incorrect string value" with bytes like \xF0\x9F is an emoji in a non-utf8mb4 column
+            if ($ctx['type'] === 'string') {
+                return "--Convert the table to utf8mb4 so it can store 4-byte characters (emoji):\nALTER TABLE `your_table` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
+            }
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Validate the input (e.g. Laravel 'integer' / 'date' rules) or add a cast on the model.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::ONLY_FULL_GROUP_BY,
+        'error_code' => [MySqlErrorCodes::ER_WRONG_FIELD_WITH_GROUP],
+        'message_regex' => '/not in GROUP BY clause/i',
+        'extract' => function($normalized) {
+            preg_match("/nonaggregated column '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'GROUP BY error: "{column}" is selected but is neither in the GROUP BY clause nor wrapped in an aggregate. MySQL\'s only_full_group_by mode rejects this.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Add the column to GROUP BY, wrap it in an aggregate such as MAX() or ANY_VALUE(), or select only grouped columns.\nIn Laravel, avoid turning off 'strict' just for this; fix the query instead.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::DUPLICATE_COLUMN,
+        'error_code' => [MySqlErrorCodes::ER_DUP_FIELDNAME],
+        'message_regex' => '/Duplicate column name/i',
+        'extract' => function($normalized) {
+            preg_match("/Duplicate column name '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? 'your_column'];
+        },
+        'explanation' => 'Duplicate column: The column "{column}" already exists. The migration was probably run before or adds the column twice.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Guard the migration: if (! Schema::hasColumn('your_table', '{$ctx['column']}')) { ... }",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::KEY_TOO_LONG,
+        'error_code' => [MySqlErrorCodes::ER_TOO_LONG_KEY],
+        'message_regex' => '/Specified key was too long/i',
+        'extract' => function($normalized) {
+            preg_match('/max key length is (\d+) bytes/', $normalized->message, $matches);
+            return ['max_length' => $matches[1] ?? 'unknown'];
+        },
+        'explanation' => 'Key too long: An index is larger than the {max_length}-byte limit. With utf8mb4 each character can take 4 bytes, so long VARCHAR columns exceed it.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => "--Index a prefix of the column instead of the whole value:\nCREATE INDEX `your_index` ON `your_table` (`your_column`(191));",
+                'other_suggestions' => "Laravel: call Schema::defaultStringLength(191) in AppServiceProvider::boot(), or give the column a shorter length.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::CANT_DROP_COLUMN_OR_KEY,
+        'error_code' => [MySqlErrorCodes::ER_CANT_DROP_FIELD_OR_KEY],
+        'message_regex' => '/Can\'t DROP/i',
+        'extract' => function($normalized) {
+            preg_match("/Can't DROP '([^']+)'/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? 'your_column'];
+        },
+        'explanation' => 'Can\'t drop: "{column}" does not exist as a column or index, so it cannot be dropped. The migration may have run already or the name is wrong.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Check the name, or guard it: if (Schema::hasColumn('your_table', '{$ctx['column']}')) { ... }",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::FK_INCOMPATIBLE_COLUMNS,
+        'error_code' => [MySqlErrorCodes::ER_FK_INCOMPATIBLE_COLUMNS, MySqlErrorCodes::ER_CANNOT_ADD_FOREIGN],
+        'message_regex' => '/are incompatible|Cannot add foreign key constraint/i',
+        'extract' => function($normalized) {
+            preg_match("/Referencing column '([^']+)' and referenced column '([^']+)' in foreign key constraint '([^']+)'/", $normalized->message, $matches);
+            return [
+                'column' => $matches[1] ?? 'your_column',
+                'referenced_column' => $matches[2] ?? 'id',
+                'constraint' => $matches[3] ?? 'your_constraint',
+            ];
+        },
+        'explanation' => 'Foreign key type mismatch: "{column}" and the referenced "{referenced_column}" must have exactly the same type, size and UNSIGNED flag.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => "--Make the referencing column match the referenced one (Laravel ids are BIGINT UNSIGNED):\nALTER TABLE `your_table` MODIFY `{$ctx['column']}` BIGINT UNSIGNED;",
+                'other_suggestions' => "Laravel: use \$table->foreignId('{$ctx['column']}')->constrained() instead of \$table->integer().",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::FK_PARENT_TABLE_MISSING,
+        'error_code' => [MySqlErrorCodes::ER_FK_CANNOT_OPEN_PARENT],
+        'message_regex' => '/Failed to open the referenced table/i',
+        'extract' => function($normalized) {
+            preg_match("/referenced table '([^']+)'/", $normalized->message, $matches);
+            return ['table' => $matches[1] ?? 'parent_table'];
+        },
+        'explanation' => 'Missing parent table: The foreign key references "{table}", which does not exist yet.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Create \"{$ctx['table']}\" first: rename the migration files so the parent table's migration runs earlier.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::DEADLOCK,
+        'error_code' => [MySqlErrorCodes::ER_LOCK_DEADLOCK],
+        'message_regex' => '/Deadlock found/i',
+        'extract' => fn($normalized) => [],
+        'explanation' => 'Deadlock: Two transactions were waiting on each other\'s locks, so MySQL rolled one back. It is safe to retry the transaction.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Retry the transaction (Laravel: DB::transaction(\$callback, attempts: 3)), keep transactions short, and touch rows in the same order everywhere.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::LOCK_WAIT_TIMEOUT,
+        'error_code' => [MySqlErrorCodes::ER_LOCK_WAIT_TIMEOUT],
+        'message_regex' => '/Lock wait timeout exceeded/i',
+        'extract' => fn($normalized) => [],
+        'explanation' => 'Lock wait timeout: The query waited too long for a row lock held by another transaction.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => "--Find the transaction holding the lock:\nSELECT * FROM information_schema.innodb_trx ORDER BY trx_started;",
+                'other_suggestions' => "Look for long-running transactions or queue workers holding locks; keep transactions short and retry.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::TOO_MANY_CONNECTIONS,
+        'error_code' => [MySqlErrorCodes::ER_CON_COUNT_ERROR],
+        'message_regex' => '/Too many connections/i',
+        'extract' => fn($normalized) => [],
+        'explanation' => 'Too many connections: MySQL reached max_connections and refused a new one.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => "--Check the limit and current usage:\nSHOW VARIABLES LIKE 'max_connections';\nSHOW STATUS LIKE 'Threads_connected';",
+                'other_suggestions' => "Reduce workers / FPM children, close idle connections, or raise max_connections.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::CONNECTION_REFUSED,
+        'error_code' => [MySqlErrorCodes::CR_CONNECTION_ERROR],
+        'extract' => function($normalized) {
+            preg_match('/\[2002\]\s*(.+)$/', $normalized->message, $matches);
+            return ['reason' => trim($matches[1] ?? 'unknown')];
+        },
+        'explanation' => 'Can\'t connect: The MySQL server could not be reached ({reason}). Check that it is running and that the host and port are correct.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => '',
+                'other_suggestions' => "Check DB_HOST / DB_PORT. In Docker use the service name (e.g. mysql), not localhost. \"No such file or directory\" means localhost made PHP use a socket: try 127.0.0.1.",
+            ];
+        }
+    ],
+    [
+        'id' => RuleIds::SERVER_GONE_AWAY,
+        'error_code' => [MySqlErrorCodes::CR_SERVER_GONE_ERROR],
+        'message_regex' => '/server has gone away/i',
+        'extract' => fn($normalized) => [],
+        'explanation' => 'Server has gone away: The connection was closed, usually after being idle longer than wait_timeout or by a packet larger than max_allowed_packet.',
+        'migration' => function($ctx) {
+            return [
+                'migration_suggestion' => "--Check the relevant limits:\nSHOW VARIABLES WHERE Variable_name IN ('wait_timeout', 'max_allowed_packet');",
+                'other_suggestions' => "Long-running workers should reconnect (Laravel: DB::reconnect()) or be restarted regularly; split very large inserts.",
+            ];
+        }
+    ],
+];
