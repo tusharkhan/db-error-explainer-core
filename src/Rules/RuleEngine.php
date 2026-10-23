@@ -52,43 +52,52 @@ class RuleEngine
             return 'An error occurred';
         }
 
-        $explanation = $rule['explanation'];
-
-        // Replace placeholders with context values
-        foreach ($context as $key => $value) {
-            if (is_string($value) || is_numeric($value)) {
-                $explanation = str_replace("{{$key}}", (string)$value, $explanation);
-            }
-        }
-
-        return $explanation;
+        return $this->fillPlaceholders($rule['explanation'], $context);
     }
 
     /**
      * Generate migration suggestion from rule
+     *
+     * @return array{migration_suggestion: string, other_suggestions: string}
      */
-    public function generateMigration(array $rule, array $context): array|string|null
+    public function generateMigration(array $rule, array $context): array
     {
-        if (!isset($rule['migration'])) {
-            return null;
+        $migration = $rule['migration'] ?? null;
+
+        if (is_string($migration)) {
+            $migration = $this->fillPlaceholders($migration, $context);
+        } elseif (is_callable($migration)) {
+            $migration = $migration($context);
         }
 
-        if (is_callable($rule['migration'])) {
-            return $rule['migration']($context);
+        return self::normalizeSuggestion($migration);
+    }
+
+    // Rules may return a string, an array or nothing; always hand back the same shape.
+    public static function normalizeSuggestion(mixed $suggestion): array
+    {
+        if (is_array($suggestion)) {
+            return [
+                'migration_suggestion' => (string) ($suggestion['migration_suggestion'] ?? ''),
+                'other_suggestions' => (string) ($suggestion['other_suggestions'] ?? ''),
+            ];
         }
 
-        if (is_string($rule['migration'])) {
-            // Replace placeholders
-            $migration = $rule['migration'];
-            foreach ($context as $key => $value) {
-                if (is_string($value) || is_numeric($value)) {
-                    $migration = str_replace("{{$key}}", (string)$value, $migration);
-                }
+        return [
+            'migration_suggestion' => is_string($suggestion) ? $suggestion : '',
+            'other_suggestions' => '',
+        ];
+    }
+
+    private function fillPlaceholders(string $template, array $context): string
+    {
+        foreach ($context as $key => $value) {
+            if (is_string($value) || is_numeric($value)) {
+                $template = str_replace("{{$key}}", (string) $value, $template);
             }
-            return $migration;
         }
 
-        return null;
+        return $template;
     }
 
     /**

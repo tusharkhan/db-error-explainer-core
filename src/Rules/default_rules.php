@@ -1355,7 +1355,11 @@ return [
         'error_code' => [MySqlErrorCodes::ER_FOREIGN_SERVER_EXISTS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
         'message_regex' => '/Foreign server already exists/i',
-        'extract' => function($normalized) {return [];},
+        'extract' => function($normalized) {
+            // MySQL: "The foreign server, <name>, you are trying to create already exists."
+            preg_match('/foreign server,\s*([^,]+),/i', $normalized->message, $matches);
+            return ['server' => trim($matches[1] ?? 'server_name')];
+        },
         'explanation' => 'Foreign server already exists: The specified foreign server for a federated table or foreign data wrapper already exists. You may need to drop the existing server first or use a different name.',
         'migration' => function($ctx) {return "DROP SERVER `".$ctx['server']."`;";}
     ],

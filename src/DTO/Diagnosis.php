@@ -12,7 +12,7 @@ readonly class Diagnosis
         public string  $errorCode,
         public string  $errorType,
         public string  $explanation,
-        public array $migrationSuggestion = [],
+        public array   $migrationSuggestion = ['migration_suggestion' => '', 'other_suggestions' => ''],
         public array   $context = [],
         public ?string $sqlState = null,
         public ?string $originalMessage = null,
@@ -50,13 +50,20 @@ readonly class Diagnosis
         
         $output .= "\n\nExplanation:\n{$this->explanation}\n";
         
-        if ($this->migrationSuggestion) {
-            $output .= "\nSuggested Fix:\n{$this->migrationSuggestion}\n";
+        $fix = $this->migrationSuggestion['migration_suggestion'] ?? '';
+        if ($fix !== '') {
+            $output .= "\nSuggested Fix:\n{$fix}\n";
         }
-        
+
+        $other = $this->migrationSuggestion['other_suggestions'] ?? '';
+        if ($other !== '') {
+            $output .= "\nOther Suggestions:\n{$other}\n";
+        }
+
         if (!empty($this->context)) {
             $output .= "\nContext:\n";
             foreach ($this->context as $key => $value) {
+                $value = is_scalar($value) || $value === null ? (string) $value : json_encode($value);
                 $output .= "  - {$key}: {$value}\n";
             }
         }
