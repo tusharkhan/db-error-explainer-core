@@ -6,12 +6,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\Lib\Helpers;
 
-class MigrationSuggesterTest extends TestCase
+class MigrationSuggesterTest extends DatabaseTestCase
 {
     #[DataProvider('foreignKeyRulesDataProvider')]
     public function test_foreign_key_rule($errorMessage, $suggestionMessage)
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
 
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
 
@@ -27,7 +27,7 @@ class MigrationSuggesterTest extends TestCase
 
     public function test_column_not_found_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
 
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
@@ -48,7 +48,7 @@ ADD COLUMN `user_email` VARCHAR(255) NULL;
 
     public function test_duplicate_entry_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Error 1062: Duplicate entry 'example@gmail.com' for key 'users_email_unique'",
@@ -66,7 +66,7 @@ DROP INDEX `users_email_unique`;
 
     public function test_table_not_found_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Error 1146: Table 'test.non_existent_table' doesn't exist",
@@ -87,7 +87,7 @@ CREATE TABLE `test.non_existent_table` (
 
     public function test_null_constrains_violation()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Column 'name' cannot be null",
@@ -105,7 +105,7 @@ ALTER TABLE `your_table` MODIFY `name` VARCHAR(255) NOT NULL DEFAULT 'default_va
 
     public function test_data_too_long()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Data too long for column 'name' at row 1",
@@ -126,7 +126,7 @@ MODIFY `name` VARCHAR(255);
 
     public function test_syntax_error()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE `your_table`' at line 1",
@@ -141,7 +141,7 @@ MODIFY `name` VARCHAR(255);
 
     public function test_access_denied_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Access denied for user 'test_user'@'localhost' (using password: YES)",
@@ -158,7 +158,7 @@ GRANT ALL PRIVILEGES ON test_user.* TO 'test_user'@'%';";
 
     public function test_unknown_database_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Unknown database 'non_existent_db'",
@@ -175,7 +175,7 @@ CREATE DATABASE `non_existent_db`;";
 
     public function test_table_exists_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Table 'test.existing_table' already exists",
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS `existing_table` (
 
     public function test_wrong_value_for_type_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Incorrect integer value: 'abc' for column 'age' at row 1",
@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `existing_table` (
 
     public function test_data_truncated_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Data truncated for column 'description' at row 1",
@@ -231,7 +231,7 @@ MODIFY `description` VARCHAR(255);
 
     public function test_ambiguous_column_name_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Column 'id' in field list is ambiguous",
@@ -246,7 +246,7 @@ MODIFY `description` VARCHAR(255);
 
     public function test_cant_create_table_suggestion()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "Can't create table 'test.new_table' (errno: 150 'Foreign key constraint is incorrectly formed')",

@@ -13,6 +13,11 @@
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <env name="DB_DSN" value="mysql:host=127.0.0.1;dbname=test"/>
+        <env name="DB_USER" value="root"/>
+        <env name="DB_PASS" value="password"/>
+    </php>
     <source>
         <include>
             <directory>src</directory>

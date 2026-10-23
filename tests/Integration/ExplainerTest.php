@@ -7,11 +7,11 @@ use TusharKhan\DbErrorExplainer\Lib\Helpers;
 use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
 use TusharKhan\DbErrorExplainer\Lib\RuleIds;
 
-class ExplainerTest extends TestCase
+class ExplainerTest extends DatabaseTestCase
 {
 
     public function test_explainer_has_migration_suggester(){
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
 
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
@@ -25,7 +25,7 @@ class ExplainerTest extends TestCase
 
     public function test_table_not_found_explain()
     {
-        $pdo = new \PDO('mysql:host=localhost;dbname=test', 'root', 'password');
+        $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
         $diagnosis = $explainer->explain(Helpers::fakePdoException(
             "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders.orders' doesn't exist",

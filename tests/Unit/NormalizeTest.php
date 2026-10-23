@@ -1,6 +1,6 @@
 <?php
 
-namespace Integration;
+namespace Unit;
 
 use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\Lib\Helpers;

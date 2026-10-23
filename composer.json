@@ -46,6 +46,12 @@
       "TusharKhan\\DbErrorExplainer\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Unit\\": "tests/Unit/",
+      "Integration\\": "tests/Integration/"
+    }
+  },
   "minimum-stability": "stable",
   "prefer-stable": true
 }
