@@ -74,8 +74,8 @@ DROP INDEX `users_email_unique`;
             1146
         ));
 
-        $expectedSuggestion = "--Create the missing table
-CREATE TABLE `test.non_existent_table` (
+        $expectedSuggestion = "--Create table
+CREATE TABLE `test`.`non_existent_table` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -149,8 +149,10 @@ MODIFY `name` VARCHAR(255);
             1045
         ));
 
-        $expectedSuggestion = "--Grant access to user:
-GRANT ALL PRIVILEGES ON test_user.* TO 'test_user'@'%';";
+        $expectedSuggestion = "--Check DB_USERNAME / DB_PASSWORD first. If they are correct, reset the password:
+ALTER USER 'test_user'@'localhost' IDENTIFIED BY 'new_password';
+--Or grant the user access to the database:
+GRANT ALL PRIVILEGES ON `your_database`.* TO 'test_user'@'localhost';";
 
         $this->assertIsArray($diagnosis->migrationSuggestion);
         $this->assertEquals($expectedSuggestion, $diagnosis->migrationSuggestion['migration_suggestion']);
@@ -256,7 +258,7 @@ MODIFY `description` VARCHAR(255);
 
         $this->assertIsArray($diagnosis->migrationSuggestion);
         $this->assertEquals("--Create table
-CREATE TABLE `test.new_table` (
+CREATE TABLE `test`.`new_table` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -269,7 +271,7 @@ CREATE TABLE `test.new_table` (
             [
                 "Error 1452: Cannot add or update a child row: a foreign key constraint fails (test.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))",
                 "// Add foreign key constraint
-ALTER TABLE `test.orders`
+ALTER TABLE `test`.`orders`
 ADD CONSTRAINT `orders_user_id_foreign`
 FOREIGN KEY (`user_id`)
 REFERENCES `users` (`id`)
@@ -279,7 +281,7 @@ ON UPDATE CASCADE;"
             [
                 "Error 1452: Cannot add or update a child row: a foreign key constraint fails (test.payments, CONSTRAINT payments_order_id_foreign FOREIGN KEY (order_id) REFERENCES orders(id))",
                 "// Add foreign key constraint
-ALTER TABLE `test.payments`
+ALTER TABLE `test`.`payments`
 ADD CONSTRAINT `payments_order_id_foreign`
 FOREIGN KEY (`order_id`)
 REFERENCES `orders` (`id`)
@@ -290,7 +292,7 @@ ON UPDATE CASCADE;"
             [
                 "Error 1451: Cannot delete or update a parent row: a foreign key constraint fails (test.orders, CONSTRAINT orders_user_id_foreign FOREIGN KEY (user_id) REFERENCES users(id))",
                 "// Add foreign key constraint
-ALTER TABLE `test.orders`
+ALTER TABLE `test`.`orders`
 ADD CONSTRAINT `orders_user_id_foreign`
 FOREIGN KEY (`user_id`)
 REFERENCES `users` (`id`)

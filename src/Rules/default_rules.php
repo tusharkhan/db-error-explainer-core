@@ -165,36 +165,37 @@ return [
     ],
     
     // Access and Authentication Errors
-//    [
-//        'id' => RuleIds::ACCESS_DENIED,
-//        'error_code' => [MySqlErrorCodes::ER_ACCESS_DENIED_ERROR],
-//        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
-//        'message_regex' => '/Access denied for user/i',
-//        'extract' => function($normalized) {
-//            preg_match("/Access denied for user '([^']+)'@'([^']+)'/", $normalized->message, $matches);
-//            return [
-//                'user' => $matches[1] ?? 'root',
-//                'host' => $matches[2] ?? 'localhost'
-//            ];
-//        },
-//        'explanation' => 'Access denied: User "{user}"@"{host}" is not authorized to access the database. Check your credentials and user permissions.',
-//        'migration' => function($ctx) {
-//            return (new MigrationSuggester(RuleIds::ACCESS_DENIED, $ctx))->suggest();
-//        }
-//    ],
-//    [
-//        'id' => RuleIds::UNKNOWN_DATABASE,
-//        'error_code' => [MySqlErrorCodes::ER_BAD_DB_ERROR],
-//        'sqlstate' => [MySqlStates::INVALID_CATALOG_NAME],
-//        'message_regex' => '/Unknown database/i',
-//        'extract' => function($normalized) {
-//            return ['database' => $normalized->database ?? 'your_database'];
-//        },
-//        'explanation' => 'Unknown database: The database "{database}" does not exist. Create it first or check for typos in the database name.',
-//        'migration' => function($ctx) {
-//            return (new MigrationSuggester(RuleIds::UNKNOWN_DATABASE, $ctx))->suggest();
-//        }
-//    ],
+    [
+        'id' => RuleIds::ACCESS_DENIED,
+        'error_code' => [MySqlErrorCodes::ER_ACCESS_DENIED_ERROR],
+        'sqlstate' => [MySqlStates::INVALID_AUTHORIZATION],
+        'message_regex' => '/Access denied for user/i',
+        'extract' => function($normalized) {
+            preg_match("/Access denied for user '([^']+)'@'([^']+)'/", $normalized->message, $matches);
+            return [
+                'user' => $matches[1] ?? 'root',
+                'host' => $matches[2] ?? 'localhost'
+            ];
+        },
+        'explanation' => 'Access denied: User "{user}"@"{host}" is not authorized to access the database. Check your credentials and user permissions.',
+        'migration' => function($ctx) {
+            return (new MigrationSuggester(RuleIds::ACCESS_DENIED, $ctx))->suggest();
+        }
+    ],
+    [
+        'id' => RuleIds::UNKNOWN_DATABASE,
+        'error_code' => [MySqlErrorCodes::ER_BAD_DB_ERROR],
+        // MySQL reports 42000; 3D000 is the standard SQLSTATE
+        'sqlstate' => [MySqlStates::SYNTAX_ERROR_OR_ACCESS_VIOLATION, MySqlStates::INVALID_CATALOG_NAME],
+        'message_regex' => '/Unknown database/i',
+        'extract' => function($normalized) {
+            return ['database' => $normalized->database ?? 'your_database'];
+        },
+        'explanation' => 'Unknown database: The database "{database}" does not exist. Create it first or check for typos in the database name.',
+        'migration' => function($ctx) {
+            return (new MigrationSuggester(RuleIds::UNKNOWN_DATABASE, $ctx))->suggest();
+        }
+    ],
     [
         'id' => RuleIds::UNKNOWN_TABLE,
         'error_code' => [MySqlErrorCodes::ER_BAD_TABLE_ERROR],
@@ -975,20 +976,20 @@ return [
     ],
     
     // Stored Procedure and Data Errors (1406-1411)
-//    [
-//        'id' => RuleIds::NO_DEFAULT_FOR_FIELD,
-//        'error_code' => [MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
-//        'sqlstate' => [MySqlStates::GENERAL_ERROR],
-//        'message_regex' => '/Field .* doesn\'t have a default value/i',
-//        'extract' => function($normalized) {
-//            preg_match("/Field '([^']+)' doesn't have a default value/", $normalized->message, $matches);
-//            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
-//        },
-//        'explanation' => 'No default value: Column "{column}" requires a value but none was provided and no default exists. Provide a value or set a default.',
-//        'migration' => function($ctx) {
-//            return "-- Set a default value:\nALTER TABLE `{$ctx['table']}` ALTER COLUMN `{$ctx['column']}` SET DEFAULT 'value';\n\n-- Or make it nullable:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL;";
-//        }
-//    ],
+    [
+        'id' => RuleIds::NO_DEFAULT_FOR_FIELD,
+        'error_code' => [MySqlErrorCodes::ER_NO_DEFAULT_FOR_FIELD],
+        'sqlstate' => [MySqlStates::GENERAL_ERROR],
+        'message_regex' => '/Field .* doesn\'t have a default value/i',
+        'extract' => function($normalized) {
+            preg_match("/Field '([^']+)' doesn't have a default value/", $normalized->message, $matches);
+            return ['column' => $matches[1] ?? $normalized->column ?? 'unknown', 'table' => $normalized->table ?? 'unknown'];
+        },
+        'explanation' => 'No default value: Column "{column}" requires a value but none was provided and no default exists. Provide a value or set a default.',
+        'migration' => function($ctx) {
+            return "-- Set a default value:\nALTER TABLE `{$ctx['table']}` ALTER COLUMN `{$ctx['column']}` SET DEFAULT 'value';\n\n-- Or make it nullable:\nALTER TABLE `{$ctx['table']}` MODIFY `{$ctx['column']}` VARCHAR(255) NULL;";
+        }
+    ],
     [
         'id' => RuleIds::SP_BAD_SQLSTATE,
         'error_code' => [MySqlErrorCodes::ER_SP_BAD_SQLSTATE],

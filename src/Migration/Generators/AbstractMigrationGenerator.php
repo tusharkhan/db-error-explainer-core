@@ -70,7 +70,7 @@ abstract class AbstractMigrationGenerator implements MigrationGeneratorInterface
     protected function formatTableReference(?string $database, string $table): string
     {
         if ($database && $database !== 'unknown') {
-            return $this->wrapIdentifier("{$database}.{$table}");
+            return $this->wrapIdentifier($database) . '.' . $this->wrapIdentifier($table);
         }
         return $this->wrapIdentifier($table);
     }
