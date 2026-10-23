@@ -85,7 +85,7 @@ class Explainer
             // Step 7: Build diagnosis
             $diagnosis = new Diagnosis(
                 errorCode: (string) $normalized->code,
-                errorType: $this->classifier->classifyErrorType($normalized->code),
+                errorType: $rule['id'] ?? $this->classifier->classifyErrorType($normalized->code),
                 explanation: $explanation,
                 migrationSuggestion: $migrationSuggestion,
                 context: $this->config['redact_sensitive_data'] ? $this->redactSensitiveData($context) : $context,
