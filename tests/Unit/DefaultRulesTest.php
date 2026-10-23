@@ -38,6 +38,15 @@ class DefaultRulesTest extends TestCase
         $this->assertIsString($diagnosis->migrationSuggestion['other_suggestions']);
     }
 
+    public function test_every_message_regex_is_valid()
+    {
+        foreach (RuleEngine::loadDefaultRules() as $rule) {
+            if (isset($rule['message_regex'])) {
+                $this->assertNotFalse(@preg_match($rule['message_regex'], ''), "Invalid regex in rule {$rule['id']}");
+            }
+        }
+    }
+
     public function test_string_migration_is_normalized()
     {
         $this->assertSame(

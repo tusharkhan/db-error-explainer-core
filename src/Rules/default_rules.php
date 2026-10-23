@@ -1294,7 +1294,7 @@ return [
         'id' => RuleIds::CANT_DROP_DATABASE_FILESYSTEM_ISSUE,
         'error_code' => [MySqlErrorCodes::ER_DB_DROP_RMDIR],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
-        'message_regex' => 'Error dropping database: .*',
+        'message_regex' => '/Error dropping database/i',
         'extract' => function($normalized) {
             preg_match('/Error dropping database: (.*)/', $normalized->message, $matches);
             return ['error' => $matches[1] ?? 'unknown'];
@@ -1389,7 +1389,7 @@ return [
         'id' => RuleIds::SLAVE_IGNORE_SERVER_IDS,
         'error_code' => [MySqlErrorCodes::ER_SLAVE_IGNORE_SERVER_IDS],
         'sqlstate' => [MySqlStates::GENERAL_ERROR],
-        'message_regex' => '/Slave I/O thread is not running and can\'t be started when server id is in the ignore list/i',
+        'message_regex' => '/Slave I\/O thread is not running and can\'t be started when server id is in the ignore list/i',
         'extract' => function($normalized) {return [];},
         'explanation' => 'Slave ignore server IDs: The slave server ID is in the ignore list, preventing the I/O thread from starting. You need to remove the server ID from the ignore list.',
         'migration' => function($ctx) {return '';}

@@ -40,7 +40,12 @@ class ErrorClassifier
     public function getBestMatch(NormalizedException $normalized): ?array
     {
         $matches = $this->findMatchingRules($normalized);
-        return !empty($matches) ? $matches[0] : null;
+
+        // Several rules can share a code; prefer the one whose message_regex fits.
+        return array_find(
+            $matches,
+            fn(array $rule) => isset($rule['message_regex']) && preg_match($rule['message_regex'], $normalized->message)
+        ) ?? $matches[0] ?? null;
     }
 
     /**

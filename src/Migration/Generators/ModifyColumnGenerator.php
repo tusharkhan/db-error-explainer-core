@@ -32,6 +32,7 @@ class ModifyColumnGenerator extends AbstractMigrationGenerator
             RuleIds::DATA_TOO_LONG, 
             RuleIds::DATA_TRUNCATED => $this->generateModifyColumnMigration($context),
             RuleIds::NULL_CONSTRAINT_VIOLATION => $this->generateRemoveConstraintMigration($context),
+            default => '',
         };
     }
 

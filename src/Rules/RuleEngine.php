@@ -38,7 +38,7 @@ class RuleEngine
         $context['error_description'] = MySqlErrorCodes::getDescription($normalized->code);
         $context['table'] = $context['table'] ?? $normalized->table ?? null;
         $context['column'] = $context['column'] ?? $normalized->column ?? null;
-        $context['constraint'] = $context['constraint'] ?? $normalized->constraint ?? null;
+        $context['constraint'] = $context['constraint'] ?? $normalized->constraint;
 
         return $context;
     }

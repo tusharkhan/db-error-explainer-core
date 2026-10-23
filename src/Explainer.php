@@ -20,9 +20,8 @@ use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
  */
 class Explainer
 {
-    private PDO $pdo;
     private array $config;
-    private ?LoggerAdapter $logger;
+    private LoggerAdapter $logger;
     private array $rules;
     private ExceptionNormalizer $normalizer;
     private ErrorClassifier $classifier;
@@ -31,7 +30,6 @@ class Explainer
 
     public function __construct(PDO $pdo, array $config = [], ?LoggerInterface $logger = null)
     {
-        $this->pdo = $pdo;
         $this->config = array_merge([
             'allow_introspection' => true,
             'redact_sensitive_data' => true,
@@ -218,13 +216,12 @@ class Explainer
      */
     private function redactSensitiveData(array $data): array
     {
-        $sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth'];
+        // Exact names only; substring matching also hid fields like "key" (the unique index name).
+        $sensitiveKeys = ['password', 'passwd', 'pwd', 'secret', 'token', 'api_key', 'access_token', 'auth_token'];
 
         array_walk_recursive($data, function (&$value, $key) use ($sensitiveKeys) {
-            foreach ($sensitiveKeys as $sensitiveKey) {
-                if (stripos($key, $sensitiveKey) !== false) {
-                    $value = '***REDACTED***';
-                }
+            if (is_string($key) && in_array(strtolower($key), $sensitiveKeys, true)) {
+                $value = '***REDACTED***';
             }
         });
 
