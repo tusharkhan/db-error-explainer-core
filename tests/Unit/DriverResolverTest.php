@@ -71,4 +71,12 @@ class DriverResolverTest extends TestCase
         $this->assertSame('connection_refused', $diagnosis->metadata['rule_id']);
         $this->assertFalse(isset($diagnosis->context['table_exists']));
     }
+
+    public function test_unmatched_error_also_reports_the_driver()
+    {
+        $diagnosis = new Explainer(null, ['driver' => 'pgsql'])->explain(FakePdoException::make('boom', ['XX000', 7, 'boom'], 7));
+
+        $this->assertSame('none', $diagnosis->metadata['rule_id']);
+        $this->assertSame('pgsql', $diagnosis->metadata['driver']);
+    }
 }

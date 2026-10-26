@@ -233,6 +233,7 @@ class Explainer
             originalMessage: $normalized->message,
             metadata: [
                 'rule_id' => 'none',
+                'driver' => $this->driver->name(),
                 'timestamp' => date('Y-m-d H:i:s'),
             ]
         );
