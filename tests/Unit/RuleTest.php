@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -13,12 +14,12 @@ class RuleTest extends TestCase
 {
     public function test_default_rules_are_all_valid()
     {
-        $this->assertContainsOnlyInstancesOf(Rule::class, RuleEngine::loadDefaultRules());
+        $this->assertContainsOnlyInstancesOf(Rule::class, new MySqlDriver()->rules());
     }
 
     public function test_every_default_rule_has_an_explanation()
     {
-        $missing = array_filter(RuleEngine::loadDefaultRules(), fn(Rule $rule) => $rule->explanation === null);
+        $missing = array_filter(new MySqlDriver()->rules(), fn(Rule $rule) => $rule->explanation === null);
 
         $this->assertSame([], array_map(fn(Rule $rule) => $rule->id, array_values($missing)));
     }

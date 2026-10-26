@@ -3,9 +3,8 @@
 namespace TusharKhan\DbErrorExplainer\Rules;
 
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
-use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
-use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
-use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
+use TusharKhan\DbErrorExplainer\Drivers\DriverInterface;
+use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 
 /**
  * Rule Engine
@@ -13,6 +12,8 @@ use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
  */
 class RuleEngine
 {
+    public function __construct(private DriverInterface $driver = new MySqlDriver()) {}
+
     /**
      * Execute a rule and extract context
      */
@@ -22,7 +23,7 @@ class RuleEngine
 
         // Fall back to parsing the message when the rule found no table
         if (empty($context['table']) && empty($normalized->table)) {
-            $extractedTable = new MessageParser()->table($normalized->message);
+            $extractedTable = $this->driver->parser()->table($normalized->message);
             if ($extractedTable) {
                 $context['table'] = $extractedTable;
             }
@@ -30,7 +31,7 @@ class RuleEngine
 
         // Add default context
         $context['error_code'] = $normalized->code;
-        $context['error_description'] = MySqlErrorCodes::getDescription($normalized->code);
+        $context['error_description'] = $this->driver->describeError($normalized->code);
         $context['table'] = $context['table'] ?? $normalized->table ?? null;
         $context['column'] = $context['column'] ?? $normalized->column ?? null;
         $context['constraint'] = $context['constraint'] ?? $normalized->constraint;
@@ -92,11 +93,5 @@ class RuleEngine
         }
 
         return $template;
-    }
-
-    /** @return list<Rule> */
-    public static function loadDefaultRules(): array
-    {
-        return array_map(Rule::fromArray(...), require __DIR__ . '/default_rules.php');
     }
 }

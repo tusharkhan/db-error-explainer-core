@@ -3,6 +3,8 @@
 namespace Integration;
 
 use PHPUnit\Framework\TestCase;
+use TusharKhan\DbErrorExplainer\Drivers\DriverResolver;
+use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
 use TusharKhan\DbErrorExplainer\Lib\RuleIds;
@@ -35,5 +37,10 @@ class ExplainerTest extends DatabaseTestCase
 
         $this->assertEquals(RuleIds::TABLE_NOT_FOUND, $diagnosis->errorType);
         $this->assertEquals(MySqlStates::TABLE_OR_VIEW_NOT_FOUND, $diagnosis->sqlState);
+    }
+
+    public function test_driver_is_detected_from_the_connection()
+    {
+        $this->assertInstanceOf(MySqlDriver::class, DriverResolver::resolve($this->pdo()));
     }
 }

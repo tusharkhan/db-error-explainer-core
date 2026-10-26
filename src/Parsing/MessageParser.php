@@ -3,9 +3,9 @@
 namespace TusharKhan\DbErrorExplainer\Parsing;
 
 // Pulls table, column, database and constraint names out of database error messages.
-class MessageParser
+class MessageParser implements MessageParserInterface
 {
-    public function table(string $errorMessage): ?string {
+    public function table(string $message): ?string {
         $patterns = [
             // Foreign key constraint errors (must come first!)
             // MySQL: (mydb.orders, CONSTRAINT ...) or (`mydb`.`orders`, CONSTRAINT ...)
@@ -72,7 +72,7 @@ class MessageParser
         ];
 
         foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $errorMessage, $matches)) {
+            if (preg_match($pattern, $message, $matches)) {
                 // If we have 2 captures, it's a schema.table pattern
                 if (isset($matches[2]) && !empty($matches[2])) {
                     // Return the table name (second capture)

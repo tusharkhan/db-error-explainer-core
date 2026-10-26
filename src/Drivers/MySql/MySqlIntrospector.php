@@ -1,14 +1,12 @@
 <?php
 
-namespace TusharKhan\DbErrorExplainer\Introspection;
+namespace TusharKhan\DbErrorExplainer\Drivers\MySql;
 
 use PDO;
+use TusharKhan\DbErrorExplainer\Introspection\IntrospectorInterface;
 
-/**
- * Database Introspector
- * Performs safe read-only schema queries
- */
-class Introspector
+// Read-only schema queries against MySQL's INFORMATION_SCHEMA.
+class MySqlIntrospector implements IntrospectorInterface
 {
     private PDO $pdo;
 
@@ -143,7 +141,7 @@ class Introspector
         return $result ?: null;
     }
 
-    public function getColumnType(?string $table, ?string $column, ?string $database)
+    public function getColumnType(?string $table, ?string $column, ?string $database = null): ?string
     {
         if (!$table || !$column) {
             return null;

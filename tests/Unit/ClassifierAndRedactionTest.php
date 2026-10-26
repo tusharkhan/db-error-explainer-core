@@ -40,7 +40,7 @@ class ClassifierAndRedactionTest extends TestCase
 
     public function test_duplicate_entry_key_is_not_redacted()
     {
-        $explainer = new Explainer(new PDO('sqlite::memory:'), ['allow_introspection' => false]);
+        $explainer = new Explainer(new PDO('sqlite::memory:'), ['driver' => 'mysql', 'allow_introspection' => false]);
         $message = "Duplicate entry 'a@b.c' for key 'users.users_email_unique'";
 
         $diagnosis = $explainer->explain(FakePdoException::make($message, ['23000', 1062, $message], 1062));
@@ -51,6 +51,7 @@ class ClassifierAndRedactionTest extends TestCase
     public function test_password_is_redacted()
     {
         $explainer = new Explainer(new PDO('sqlite::memory:'), [
+            'driver' => 'mysql',
             'allow_introspection' => false,
             'custom_rules' => [[
                 'id' => 'custom',

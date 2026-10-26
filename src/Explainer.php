@@ -8,8 +8,10 @@ use Throwable;
 use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
 use TusharKhan\DbErrorExplainer\DTO\Diagnosis;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
-use TusharKhan\DbErrorExplainer\Introspection\Introspector;
-use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
+use TusharKhan\DbErrorExplainer\Drivers\DriverInterface;
+use TusharKhan\DbErrorExplainer\Drivers\DriverResolver;
+use TusharKhan\DbErrorExplainer\Introspection\IntrospectorInterface;
+use TusharKhan\DbErrorExplainer\Lib\RuleIds;
 use TusharKhan\DbErrorExplainer\Logging\LoggerAdapter;
 use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
 use TusharKhan\DbErrorExplainer\Rules\Rule;
@@ -27,7 +29,8 @@ class Explainer
     private ExceptionNormalizer $normalizer;
     private ErrorClassifier $classifier;
     private RuleEngine $ruleEngine;
-    private ?Introspector $introspector;
+    private ?IntrospectorInterface $introspector;
+    private DriverInterface $driver;
 
     public function __construct(PDO $pdo, array $config = [], ?LoggerInterface $logger = null)
     {
@@ -35,22 +38,26 @@ class Explainer
             'allow_introspection' => true,
             'redact_sensitive_data' => true,
             'custom_rules' => [],
+            // null = detect from the PDO connection; or a name like "mysql", or a DriverInterface
+            'driver' => null,
         ], $config);
+
+        $this->driver = DriverResolver::resolve($pdo, $this->config['driver']);
 
         // Initialize logger
         $this->logger = new LoggerAdapter($logger);
 
         // Load rules
         $this->rules = array_merge(
-            RuleEngine::loadDefaultRules(),
+            $this->driver->rules(),
             array_map(Rule::from(...), $this->config['custom_rules'])
         );
 
         // Initialize components
-        $this->normalizer = new ExceptionNormalizer();
-        $this->classifier = new ErrorClassifier($this->rules);
-        $this->ruleEngine = new RuleEngine();
-        $this->introspector = $this->config['allow_introspection'] ? new Introspector($pdo) : null;
+        $this->normalizer = new ExceptionNormalizer($this->driver->parser());
+        $this->classifier = new ErrorClassifier($this->rules, $this->driver);
+        $this->ruleEngine = new RuleEngine($this->driver);
+        $this->introspector = $this->config['allow_introspection'] ? $this->driver->introspector($pdo) : null;
     }
 
     /**
@@ -74,7 +81,7 @@ class Explainer
 
             // Step 4: Optional introspection for additional context
             if ($this->introspector && $normalized->table) {
-                $context = $this->enrichContextWithIntrospection($context, $normalized);
+                $context = $this->enrichContextWithIntrospection($context, $normalized, $rule->id);
             }
 
             // Step 5: Generate explanation
@@ -96,6 +103,7 @@ class Explainer
                     : $normalized->message,
                 metadata: [
                     'rule_id' => $rule->id,
+                    'driver' => $this->driver->name(),
                     'introspection_enabled' => $this->config['allow_introspection'],
                     'timestamp' => date('Y-m-d H:i:s'),
                 ]
@@ -128,13 +136,13 @@ class Explainer
     public function addCustomRule(Rule|array $rule): void
     {
         $this->rules[] = Rule::from($rule);
-        $this->classifier = new ErrorClassifier($this->rules);
+        $this->classifier = new ErrorClassifier($this->rules, $this->driver);
     }
 
     /**
      * Enrich context with database introspection
      */
-    private function enrichContextWithIntrospection(array $context, NormalizedException $normalized): array
+    private function enrichContextWithIntrospection(array $context, NormalizedException $normalized, string $ruleId): array
     {
         if (!$this->introspector || !$normalized->table) {
             return $context;
@@ -148,7 +156,7 @@ class Explainer
             );
 
             // Get foreign keys if applicable
-            if (in_array($normalized->code, [1451, 1452])) {
+            if (in_array($ruleId, [RuleIds::FK_MISSING_PARENT, RuleIds::FK_CANNOT_DELETE_PARENT], true)) {
                 $foreignKeys = $this->introspector->getForeignKeys(
                     $normalized->table,
                     $normalized->database
@@ -157,7 +165,7 @@ class Explainer
             }
 
             // Get unique constraints if applicable
-            if ($normalized->code === MySqlErrorCodes::ER_DUP_ENTRY) {
+            if ($ruleId === RuleIds::DUPLICATE_ENTRY) {
                 $uniqueConstraints = $this->introspector->getUniqueConstraints(
                     $normalized->table,
                     $normalized->database

@@ -20,7 +20,7 @@ final readonly class Rule
         public Closure|string|null $migration = null,
     ) {}
 
-    // Builds a rule from the array format used by default_rules.php and custom_rules; fails loudly on typos.
+    // Builds a rule from the array format used by driver rule files and custom_rules; fails loudly on typos.
     public static function fromArray(array $definition): self
     {
         $id = $definition['id'] ?? null;

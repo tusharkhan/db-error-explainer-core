@@ -7,6 +7,7 @@ use Throwable;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Lib\SqlState;
 use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
+use TusharKhan\DbErrorExplainer\Parsing\MessageParserInterface;
 
 /**
  * Exception Normalizer
@@ -14,7 +15,7 @@ use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
  */
 class ExceptionNormalizer
 {
-    public function __construct(private MessageParser $parser = new MessageParser()) {}
+    public function __construct(private MessageParserInterface $parser = new MessageParser()) {}
 
     public function normalize(Throwable $exception): NormalizedException
     {
