@@ -8,19 +8,35 @@ use PHPUnit\Framework\TestCase;
 
 abstract class DatabaseTestCase extends TestCase
 {
-    private static ?PDO $pdo = null;
+    /** @var array<string, PDO> */
+    private static array $connections = [];
 
-    // Connection comes from DB_DSN / DB_USER / DB_PASS; skips when unreachable.
+    // MySQL connection from DB_DSN / DB_USER / DB_PASS; skips when unreachable.
     protected function pdo(): PDO
     {
-        if (self::$pdo === null) {
+        return $this->connect('DB');
+    }
+
+    // PostgreSQL connection from PG_DSN / PG_USER / PG_PASS; skips when unreachable.
+    protected function pgsql(): PDO
+    {
+        return $this->connect('PG');
+    }
+
+    private function connect(string $prefix): PDO
+    {
+        if (!isset(self::$connections[$prefix])) {
             try {
-                self::$pdo = new PDO(getenv('DB_DSN') ?: '', getenv('DB_USER') ?: null, getenv('DB_PASS') ?: null);
+                self::$connections[$prefix] = new PDO(
+                    getenv("{$prefix}_DSN") ?: '',
+                    getenv("{$prefix}_USER") ?: null,
+                    getenv("{$prefix}_PASS") ?: null
+                );
             } catch (PDOException $e) {
-                $this->markTestSkipped('Database not reachable: ' . $e->getMessage());
+                $this->markTestSkipped("{$prefix} database not reachable: " . $e->getMessage());
             }
         }
 
-        return self::$pdo;
+        return self::$connections[$prefix];
     }
 }
