@@ -2,7 +2,7 @@
 
 Framework-agnostic PHP library that explains database exceptions in plain language and suggests a fix. Works with any PDO connection to **MySQL / MariaDB, PostgreSQL or SQLite**.
 
-For Laravel, use [`tusharkhan/db-error-explainer-laravel`](../laravel), which wires this up for you.
+For Laravel, use [`tusharkhan/db-error-explainer-laravel`](https://github.com/tusharkhan/db-error-explainer-laravel), which wires this up for you.
 
 ## Requirements
 
@@ -104,4 +104,4 @@ Implement `TusharKhan\DbErrorExplainer\Drivers\DriverInterface` (rules, message 
 
 ## License
 
-MIT. See [LICENSE](../../LICENSE).
+MIT. See [LICENSE](LICENSE).
