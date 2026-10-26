@@ -6,7 +6,7 @@ use PDO;
 use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
 use TusharKhan\DbErrorExplainer\Explainer;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Lib\RuleIds;
 use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
@@ -40,7 +40,7 @@ class ErrorTypeTest extends TestCase
         $explainer = new Explainer(new PDO('sqlite::memory:'), ['allow_introspection' => false]);
         $message = "Column 'name' cannot be null";
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException($message, ['23000', 1048, $message], 1048));
+        $diagnosis = $explainer->explain(FakePdoException::make($message, ['23000', 1048, $message], 1048));
 
         $this->assertSame(RuleIds::NULL_CONSTRAINT_VIOLATION, $diagnosis->errorType);
         $this->assertSame($diagnosis->metadata['rule_id'], $diagnosis->errorType);
@@ -50,7 +50,7 @@ class ErrorTypeTest extends TestCase
     {
         $explainer = new Explainer(new PDO('sqlite::memory:'), ['allow_introspection' => false]);
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException('dup', ['XX000', 1062, 'dup'], 1062));
+        $diagnosis = $explainer->explain(FakePdoException::make('dup', ['XX000', 1062, 'dup'], 1062));
 
         $this->assertSame(RuleIds::DUPLICATE_ENTRY, $diagnosis->errorType);
     }

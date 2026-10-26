@@ -4,7 +4,7 @@ namespace TusharKhan\DbErrorExplainer\Rules;
 
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 use TusharKhan\DbErrorExplainer\Migration\MigrationSuggester;
 
 /**
@@ -25,9 +25,9 @@ class RuleEngine
             $context = $rule['extract']($normalized);
         }
 
-        // Try to extract table name using Helpers if not already set
+        // Fall back to parsing the message when the rule found no table
         if (empty($context['table']) && empty($normalized->table)) {
-            $extractedTable = Helpers::extractTable($normalized->message);
+            $extractedTable = new MessageParser()->table($normalized->message);
             if ($extractedTable) {
                 $context['table'] = $extractedTable;
             }

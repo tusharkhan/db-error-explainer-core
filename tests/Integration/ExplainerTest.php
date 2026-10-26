@@ -3,7 +3,7 @@
 namespace Integration;
 
 use PHPUnit\Framework\TestCase;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlStates;
 use TusharKhan\DbErrorExplainer\Lib\RuleIds;
 
@@ -14,7 +14,7 @@ class ExplainerTest extends DatabaseTestCase
         $pdo = $this->pdo();
 
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders.orders' doesn't exist",
             ['42S02', 1146, "Table 'orders.orders' doesn't exist"],
             1146
@@ -27,7 +27,7 @@ class ExplainerTest extends DatabaseTestCase
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders.orders' doesn't exist",
             ['42S02', 1146, "Table 'orders.orders' doesn't exist"],
             1146

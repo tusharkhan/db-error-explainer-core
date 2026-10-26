@@ -5,7 +5,8 @@ namespace TusharKhan\DbErrorExplainer\Normalizer;
 use PDOException;
 use Throwable;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use TusharKhan\DbErrorExplainer\Lib\SqlState;
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 
 /**
  * Exception Normalizer
@@ -13,6 +14,8 @@ use TusharKhan\DbErrorExplainer\Lib\Helpers;
  */
 class ExceptionNormalizer
 {
+    public function __construct(private MessageParser $parser = new MessageParser()) {}
+
     public function normalize(Throwable $exception): NormalizedException
     {
         $message = $exception->getMessage();
@@ -26,8 +29,8 @@ class ExceptionNormalizer
             $sqlState = $exception->errorInfo[0];
             $code = $exception->errorInfo[1] ?? $code;
 
-            $stateClass = Helpers::getSqlStateClass($sqlState);
-            $stateSubClass = Helpers::getSqlStateSubClass($sqlState);
+            $stateClass = SqlState::classOf($sqlState);
+            $stateSubClass = SqlState::subclassOf($sqlState);
         }
         
         // Extract table name
@@ -60,21 +63,21 @@ class ExceptionNormalizer
     }
 
     private function extractTable(string $errorMessage): ?string {
-        return Helpers::extractTable($errorMessage);
+        return $this->parser->table($errorMessage);
     }
 
     private function extractColumn(string $message): ?string
     {
-        return Helpers::extractColumn($message);
+        return $this->parser->column($message);
     }
 
     private function extractConstraint(string $message): array
     {
-        return Helpers::extractAllConstraints($message);
+        return $this->parser->constraintDetails($message);
     }
 
     private function extractDatabase(string $message): ?string
     {
-        return Helpers::extractDatabase($message);
+        return $this->parser->database($message);
     }
 }

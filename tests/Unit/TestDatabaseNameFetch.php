@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -9,7 +10,7 @@ class TestDatabaseNameFetch extends TestCase
 {
     #[DataProvider('generateErrorMessage')]
     public function test_get_database_name_from_sql_error_message($errorMessage, $expectedDatabaseName){
-        $actualDatabaseName = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractDatabase($errorMessage);
+        $actualDatabaseName = new MessageParser()->database($errorMessage);
 
         $this->assertEquals($expectedDatabaseName, $actualDatabaseName);
     }

@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Explainer;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use Support\FakePdoException;
 
 class ClassifierAndRedactionTest extends TestCase
 {
@@ -43,7 +43,7 @@ class ClassifierAndRedactionTest extends TestCase
         $explainer = new Explainer(new PDO('sqlite::memory:'), ['allow_introspection' => false]);
         $message = "Duplicate entry 'a@b.c' for key 'users.users_email_unique'";
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException($message, ['23000', 1062, $message], 1062));
+        $diagnosis = $explainer->explain(FakePdoException::make($message, ['23000', 1062, $message], 1062));
 
         $this->assertStringNotContainsString('REDACTED', json_encode($diagnosis->context));
     }
@@ -59,7 +59,7 @@ class ClassifierAndRedactionTest extends TestCase
             ]],
         ]);
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException('boom', ['HY000', 9999, 'boom'], 9999));
+        $diagnosis = $explainer->explain(FakePdoException::make('boom', ['HY000', 9999, 'boom'], 9999));
 
         $this->assertSame('***REDACTED***', $diagnosis->context['password']);
         $this->assertSame('***REDACTED***', $diagnosis->context['db']['api_key']);

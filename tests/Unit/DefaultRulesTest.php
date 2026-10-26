@@ -7,7 +7,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\DTO\Diagnosis;
 use TusharKhan\DbErrorExplainer\Explainer;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
 
 class DefaultRulesTest extends TestCase
@@ -27,7 +27,7 @@ class DefaultRulesTest extends TestCase
     {
         $explainer = new Explainer(new PDO('sqlite::memory:'), ['allow_introspection' => false]);
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "SQLSTATE[{$sqlStates[0]}]: test error",
             [$sqlStates[0], $codes[0], 'test error'],
             $codes[0]
@@ -68,7 +68,7 @@ class DefaultRulesTest extends TestCase
         $explainer = new Explainer(new PDO('sqlite::memory:'), ['allow_introspection' => false]);
         $message = 'The foreign server, fed1, you are trying to create already exists.';
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException($message, ['HY000', 1476, $message], 1476));
+        $diagnosis = $explainer->explain(FakePdoException::make($message, ['HY000', 1476, $message], 1476));
 
         $this->assertSame('DROP SERVER `fed1`;', $diagnosis->migrationSuggestion['migration_suggestion']);
     }

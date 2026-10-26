@@ -3,14 +3,14 @@
 namespace Unit;
 
 use PHPUnit\Framework\TestCase;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
 
 class NormalizeTest extends TestCase
 {
     public function test_fakePDO()
     {
-        $ex = Helpers::fakePdoException(
+        $ex = FakePdoException::make(
             "MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists",
             ['42S01', 1050, "Table 'orders2' already exists"],
             1050
@@ -24,7 +24,7 @@ class NormalizeTest extends TestCase
 
     public function test_error_normalize()
     {
-        $exception = Helpers::fakePdoException(
+        $exception = FakePdoException::make(
             "MySQL Error 1050: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'orders2' already exists",
             ['42S01', 1050, "Table 'orders2' already exists"],
             1050
@@ -40,7 +40,7 @@ class NormalizeTest extends TestCase
 
     public function test_table_not_exist()
     {
-        $exception = Helpers::fakePdoException(
+        $exception = FakePdoException::make(
             "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders.orders' doesn't exist",
             ['42S02', 1146, "Table 'orders.orders' doesn't exist"],
             1146
@@ -57,7 +57,7 @@ class NormalizeTest extends TestCase
 
     public function test_column_not_found()
     {
-        $exception = Helpers::fakePdoException(
+        $exception = FakePdoException::make(
             "Error 1054: Unknown column 'user_email' in 'field list'",
             ['42S22', 1054, "Unknown column 'user_email' in 'field list'"],
             1054
@@ -70,6 +70,5 @@ class NormalizeTest extends TestCase
         $this->assertSame('42S22', $normalized->sqlState);
         $this->assertSame('S22', $normalized->stateSubClass);
         $this->assertSame('42', $normalized->stateClass);
-        print_r($normalized);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +11,7 @@ class TestTableNameFetch extends TestCase
     #[DataProvider('tableNameErrorProvider')]
     public function test_get_table_name_from_sql_error($errorMessage, $expectedTableName)
     {
-        $tableName = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractTable($errorMessage);
+        $tableName = new MessageParser()->table($errorMessage);
 
         $this->assertEquals($expectedTableName, $tableName);
     }

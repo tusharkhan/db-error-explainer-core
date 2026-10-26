@@ -4,14 +4,15 @@ namespace Unit;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
+use TusharKhan\DbErrorExplainer\Parsing\SqlConstraintParser;
 
 class TestExtractAllConstraints extends TestCase
 {
     #[DataProvider('allConstraintsErrorProvider')]
     public function test_extract_all_constraints_from_sql_errors($errorMessage, $expectedResult)
     {
-        $result = Helpers::extractAllConstraints($errorMessage);
+        $result = new MessageParser()->constraintDetails($errorMessage);
 
         $this->assertEquals($expectedResult['constraint_type'], $result['constraint_type'], 'Constraint type mismatch');
 
@@ -220,7 +221,7 @@ class TestExtractAllConstraints extends TestCase
     #[DataProvider('detectConstraintTypeProvider')]
     public function test_detect_constraint_type($errorMessage, $expectedType)
     {
-        $type = Helpers::detectConstraintType($errorMessage);
+        $type = new MessageParser()->constraintType($errorMessage);
         $this->assertEquals($expectedType, $type);
     }
 
@@ -274,7 +275,7 @@ class TestExtractAllConstraints extends TestCase
     #[DataProvider('foreignKeyInfoProvider')]
     public function test_extract_foreign_key_info($errorMessage, $expectedTable, $expectedColumn, $expectedOnDelete, $expectedOnUpdate)
     {
-        $result = Helpers::extractForeignKeyInfo($errorMessage);
+        $result = new MessageParser()->foreignKeyInfo($errorMessage);
 
         $this->assertEquals($expectedTable, $result['referenced_table'], 'Referenced table mismatch');
         $this->assertEquals($expectedColumn, $result['referenced_column'], 'Referenced column mismatch');
@@ -326,7 +327,7 @@ class TestExtractAllConstraints extends TestCase
     #[DataProvider('constraintsFromSQLProvider')]
     public function test_extract_constraints_from_sql($sql, $expectedCount, $expectedTypes)
     {
-        $constraints = Helpers::extractConstraintsFromSQL($sql);
+        $constraints = new SqlConstraintParser()->fromSql($sql);
 
         $this->assertCount($expectedCount, $constraints, 'Constraint count mismatch');
 
@@ -406,7 +407,7 @@ class TestExtractAllConstraints extends TestCase
     #[DataProvider('violatingValueProvider')]
     public function test_extract_violating_value($errorMessage, $expectedValue)
     {
-        $value = Helpers::extractViolatingValue($errorMessage);
+        $value = new MessageParser()->violatingValue($errorMessage);
         $this->assertEquals($expectedValue, $value);
     }
 
@@ -441,7 +442,7 @@ class TestExtractAllConstraints extends TestCase
     #[DataProvider('constraintViolationSummaryProvider')]
     public function test_get_constraint_violation_summary($errorMessage, $expectedType, $expectedName, $hasDetails)
     {
-        $summary = Helpers::getConstraintViolationSummary($errorMessage);
+        $summary = new MessageParser()->violationSummary($errorMessage);
 
         $this->assertEquals($expectedType, $summary['type'], 'Type mismatch');
         $this->assertEquals($expectedName, $summary['name'], 'Name mismatch');

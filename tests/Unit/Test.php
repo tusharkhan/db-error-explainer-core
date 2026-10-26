@@ -2,6 +2,8 @@
 
 namespace Unit;
 
+use TusharKhan\DbErrorExplainer\Lib\SqlState;
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +12,7 @@ class Test extends TestCase
     #[DataProvider('dataForTestTableNameMatchesExpected')]
     public function test_get_table_name_method($databaseError, $expectedTableName)
     {
-        $actualTableName = \TusharKhan\DbErrorExplainer\Lib\Helpers::getTableName($databaseError);
+        $actualTableName = new MessageParser()->table($databaseError);
         $this->assertEquals($expectedTableName, $actualTableName);
     }
 
@@ -57,7 +59,7 @@ class Test extends TestCase
     public function test_get_state_class()
     {
         $string = '42000';
-        $class = \TusharKhan\DbErrorExplainer\Lib\Helpers::getSqlStateClass($string);
+        $class = SqlState::classOf($string);
         $this->assertEquals('42', $class);
     }
 
@@ -65,7 +67,7 @@ class Test extends TestCase
     {
         $string = '42000';
 
-        $subClass = \TusharKhan\DbErrorExplainer\Lib\Helpers::getSqlStateSubClass($string);
+        $subClass = SqlState::subclassOf($string);
         $this->assertEquals('000', $subClass);
     }
 }

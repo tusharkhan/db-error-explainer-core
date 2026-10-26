@@ -4,7 +4,7 @@ namespace Integration;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use TusharKhan\DbErrorExplainer\Lib\Helpers;
+use Support\FakePdoException;
 
 class MigrationSuggesterTest extends DatabaseTestCase
 {
@@ -15,7 +15,7 @@ class MigrationSuggesterTest extends DatabaseTestCase
 
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
 
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             $errorMessage,
             [ "23000", 1452, $errorMessage],
             1452
@@ -30,7 +30,7 @@ class MigrationSuggesterTest extends DatabaseTestCase
         $pdo = $this->pdo();
 
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Error 1054: Unknown column 'user_email' in 'field list'",
             ['42S22', 1054, "Unknown column 'user_email' in 'field list'"],
             1054
@@ -50,7 +50,7 @@ ADD COLUMN `user_email` VARCHAR(255) NULL;
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Error 1062: Duplicate entry 'example@gmail.com' for key 'users_email_unique'",
             ['23000', 1062, "Duplicate entry 'example@gmail.com' for key 'users_email_unique'"],
             1062
@@ -68,7 +68,7 @@ DROP INDEX `users_email_unique`;
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Error 1146: Table 'test.non_existent_table' doesn't exist",
             ['42S02', 1146, "Table 'test.non_existent_table' doesn't exist"],
             1146
@@ -89,7 +89,7 @@ CREATE TABLE `test`.`non_existent_table` (
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Column 'name' cannot be null",
             ['23000', 1048, "Column 'name' cannot be null"],
             1048
@@ -107,7 +107,7 @@ ALTER TABLE `your_table` MODIFY `name` VARCHAR(255) NOT NULL DEFAULT 'default_va
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Data too long for column 'name' at row 1",
             ['22001', 1406, "Data too long for column 'name' at row 1"],
             1406
@@ -128,7 +128,7 @@ MODIFY `name` VARCHAR(255);
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE `your_table`' at line 1",
             ['42000', 1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ALTER TABLE `your_table`' at line 1"],
             1064
@@ -143,7 +143,7 @@ MODIFY `name` VARCHAR(255);
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Access denied for user 'test_user'@'localhost' (using password: YES)",
             ['28000', 1045, "Access denied for user 'test_user'@'localhost' (using password: YES)"],
             1045
@@ -162,7 +162,7 @@ GRANT ALL PRIVILEGES ON `your_database`.* TO 'test_user'@'localhost';";
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Unknown database 'non_existent_db'",
             ['3D000', 1049, "Unknown database 'non_existent_db'"],
             1049
@@ -179,7 +179,7 @@ CREATE DATABASE `non_existent_db`;";
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Table 'test.existing_table' already exists",
             ['42S01', 1050, "Table 'test.existing_table' already exists"],
             1050
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS `existing_table` (
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Incorrect integer value: 'abc' for column 'age' at row 1",
             ['21S01', 1366, "Incorrect integer value: 'abc' for column 'age' at row 1"],
             1366
@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS `existing_table` (
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Data truncated for column 'description' at row 1",
             ['01000', 1265, "Data truncated for column 'description' at row 1"],
             1265
@@ -235,7 +235,7 @@ MODIFY `description` VARCHAR(255);
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Column 'id' in field list is ambiguous",
             ['HY000', 1475, "Column 'id' in field list is ambiguous"],
             1475
@@ -250,7 +250,7 @@ MODIFY `description` VARCHAR(255);
     {
         $pdo = $this->pdo();
         $explainer = new \TusharKhan\DbErrorExplainer\Explainer($pdo);
-        $diagnosis = $explainer->explain(Helpers::fakePdoException(
+        $diagnosis = $explainer->explain(FakePdoException::make(
             "Can't create table 'test.new_table' (errno: 150 'Foreign key constraint is incorrectly formed')",
             ['HY000', 1005, "Can't create table 'test.new_table' (errno: 150 'Foreign key constraint is incorrectly formed')"],
             1005

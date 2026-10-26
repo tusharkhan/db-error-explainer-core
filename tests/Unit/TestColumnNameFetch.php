@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +11,7 @@ class TestColumnNameFetch extends TestCase
     #[DataProvider('columnErrorProvider')]
     public function test_fetch_column_name_from_sql_errors($errorMessage, $expectedColumnName)
     {
-        $columnName = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractColumn($errorMessage);
+        $columnName = new MessageParser()->column($errorMessage);
         $this->assertEquals($expectedColumnName, $columnName);
     }
 

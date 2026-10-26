@@ -2,6 +2,7 @@
 
 namespace Unit;
 
+use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -10,7 +11,7 @@ class TestExtractConstraint extends TestCase
     #[DataProvider('constraintErrorProvider')]
     public function test_extract_constraint_from_sql_errors($errorMessage, $expectedConstraint)
     {
-        $constraint = \TusharKhan\DbErrorExplainer\Lib\Helpers::extractConstraint($errorMessage);
+        $constraint = new MessageParser()->constraintName($errorMessage);
 
         $this->assertEquals($expectedConstraint, $constraint);
     }
