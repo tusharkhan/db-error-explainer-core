@@ -1,23 +1,13 @@
 # DB Error Explainer Core
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Framework-agnostic PHP library that explains database exceptions in plain language and suggests a fix. Works with any PDO connection to **MySQL / MariaDB, PostgreSQL or SQLite**.
 
-A framework-agnostic PHP library for analyzing and explaining database errors with actionable insights.
-
-## Features
-
-- 🔍 **Intelligent Error Analysis**: Automatically classifies MySQL/PDO errors
-- 📝 **Human-Readable Explanations**: Converts cryptic database errors into understandable messages
-- 🛠️ **Migration Suggestions**: Generates Laravel Blueprint-based migration fixes
-- 🔒 **Safe Introspection**: Optional read-only schema analysis
-- 📊 **Structured Output**: Returns `Diagnosis` objects for programmatic use
-- 🪵 **PSR-3 Logging**: Optional logging support via `LoggerAdapter`
+For Laravel, use [`tusharkhan/db-error-explainer-laravel`](../laravel), which wires this up for you.
 
 ## Requirements
 
-- PHP ^8.2
-- PDO extension
-- PSR-3 Logger (optional)
+- PHP 8.4+
+- `ext-pdo` with the driver for your database
 
 ## Installation
 
@@ -27,63 +17,91 @@ composer require tusharkhan/db-error-explainer-core
 
 ## Usage
 
-[See the documentation](USAGE.md) for usage examples.
+```php
+use TusharKhan\DbErrorExplainer\Explainer;
 
-## Components
+$explainer = new Explainer($pdo);
 
-- **Explainer**: Main entry point
-- **ExceptionNormalizer**: Extracts canonical data from exceptions
-- **ErrorClassifier**: Selects candidate rules based on error codes
-- **RuleEngine**: Executes rule matching using PHP array rules
-- **Introspector**: Performs safe INFORMATION_SCHEMA queries
-- **MigrationSuggester**: Builds Blueprint migration stubs
-- **LoggerAdapter**: Wraps PSR-3 logging (optional)
-- **Diagnosis**: Structured output object
+try {
+    $pdo->exec("INSERT INTO orders (user_id) VALUES (999)");
+} catch (PDOException $e) {
+    $diagnosis = $explainer->explain($e);
 
-## Rule Definition
+    echo $diagnosis->format();
+}
+```
 
-Rules are defined as PHP arrays:
+`explain()` never throws. If analysis itself fails you get a diagnosis with `errorType` `analysis_failed` and the original message.
+
+The database is detected from the PDO connection (`PDO::ATTR_DRIVER_NAME`). When there is no working connection, for example because connecting failed, pass `null` and name the driver:
 
 ```php
-[
-        'id' => RuleIds::FK_MISSING_PARENT,
-        'error_code' => [MySqlErrorCodes::ER_NO_REFERENCED_ROW_2],
-        'sqlstate' => [MySqlStates::CONSTANT_VIOLATION],
-        'message_regex' => '/foreign key constraint fails.*Cannot add or update/i',
-        'extract' => function($normalized) {
-            preg_match('/CONSTRAINT `([^`]+)`/', $normalized->message, $constraint);
-            preg_match('/FOREIGN KEY \(`([^`]+)`\)/', $normalized->message, $column);
-            preg_match('/REFERENCES `([^`]+)`/', $normalized->message, $parentTable);
-            preg_match('/\(`([^`]+)`\)/', $normalized->message, $parentColumn);
-
-            return [
-                'table' => $normalized->table ?? 'unknown',
-                'column' => $column[1] ?? 'unknown',
-                'parent_table' => $parentTable[1] ?? 'unknown',
-                'constraint' => $constraint[1] ?? null,
-                'parent_column' => $parentColumn[1] ?? null
-            ];
-        },
-        'explanation' => 'Foreign key constraint violation: The value you are trying to insert or update in column "{column}" does not exist in the parent table "{parent_table}". You must first insert the referenced record in the parent table.',
-        'migration' => function($ctx) {
-            return (new \TusharKhan\DbErrorExplainer\Migration\MigrationSuggester(RuleIds::FK_MISSING_PARENT, $ctx))->suggest();
-        },
-    ]
+$explainer = new Explainer(null, ['driver' => 'mysql']);   // mysql, mariadb, pgsql or sqlite
 ```
 
-## Laravel Integration
+## The diagnosis
 
-For Laravel applications, use the companion package:
+| Property | Example |
+|---|---|
+| `errorType` | `fk_missing_parent`, the rule id, shared across databases |
+| `errorCode` | `1452` on MySQL, the SQLSTATE (`23503`) on PostgreSQL, `19` on SQLite |
+| `sqlState` | `23000` |
+| `explanation` | Plain-language explanation with your table / column names |
+| `migrationSuggestion['migration_suggestion']` | SQL fix, or `''` |
+| `migrationSuggestion['other_suggestions']` | Tip (often Laravel-specific), or `''` |
+| `context` | Extracted names and, with introspection, `table_exists`, `table_columns`, `foreign_keys`, `unique_constraints`, `column_type` |
+| `originalMessage` | The database's message |
+| `metadata` | `rule_id` (`none` when no rule matched), `driver`, `introspection_enabled`, `timestamp` |
 
-```bash
-composer require tusharkhan/db-error-explainer-laravel
+Output helpers: `format()` (readable text), `toArray()`, `toJson()`.
+
+## Options
+
+```php
+$explainer = new Explainer($pdo, [
+    'driver' => null,                  // null = detect; or 'mysql', 'mariadb', 'pgsql', 'sqlite', or a DriverInterface
+    'allow_introspection' => true,     // read-only schema lookups for more specific explanations
+    'redact_sensitive_data' => true,   // hide values of keys like password, token, api_key
+    'custom_rules' => [],              // see below
+], $psrLogger);                        // optional PSR-3 logger: every diagnosis is logged at info level
 ```
+
+Introspection only runs read-only queries (`information_schema`, `pg_catalog` or SQLite `PRAGMA`s). Turn it off if you don't want the extra queries, e.g. `'allow_introspection' => getenv('APP_ENV') !== 'production'`.
+
+## Custom rules
+
+Rules are arrays, checked after the built-in ones for the active database:
+
+```php
+$explainer = new Explainer($pdo, [
+    'custom_rules' => [
+        [
+            'id' => 'orders_status_check',
+            'error_code' => [3819],                       // driver codes, and/or
+            'sqlstate' => ['HY000'],                      // SQLSTATEs
+            'message_regex' => '/orders_status_check/',   // prefers this rule when several match
+            'require_message' => true,                    // only match when the regex matches too
+            'extract' => fn($normalized) => ['status' => 'unknown'],
+            'explanation' => 'Invalid order status "{status}" for table {table}.',
+            'migration' => fn($ctx) => [
+                'migration_suggestion' => '',
+                'other_suggestions' => 'Use one of the OrderStatus enum values.',
+            ],
+        ],
+    ],
+]);
+
+$explainer->addCustomRule([...]);   // or later
+```
+
+- `{placeholders}` in `explanation` (and in a string `migration`) are filled from the context: what `extract` returns plus `table`, `column`, `error_code` and `error_description`.
+- `migration` can be a string template or a callable returning a string or `['migration_suggestion' => ..., 'other_suggestions' => ...]`.
+- Rules are validated when loaded. A typo in a key, a missing `id`, nothing to match on or an invalid regex throws an `InvalidArgumentException` naming the rule.
+
+## Adding a database
+
+Implement `TusharKhan\DbErrorExplainer\Drivers\DriverInterface` (rules, message parser, introspector, error descriptions) and pass an instance as the `driver` option. The built-in drivers in `src/Drivers/` are the reference.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
-
-## Credits
-
-Developed by [Tushar Khan](https://github.com/tusharkhan)
-
+MIT. See [LICENSE](../../LICENSE).
