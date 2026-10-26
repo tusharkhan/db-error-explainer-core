@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Drivers\DriverResolver;
 use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
+use TusharKhan\DbErrorExplainer\Drivers\Sqlite\SqliteDriver;
 use TusharKhan\DbErrorExplainer\Explainer;
 
 class DriverResolverTest extends TestCase
@@ -32,9 +33,9 @@ class DriverResolverTest extends TestCase
         DriverResolver::resolve(new PDO('sqlite::memory:'), 'oracle');
     }
 
-    public function test_connection_without_a_driver_falls_back_to_mysql()
+    public function test_sqlite_connection_is_detected()
     {
-        $this->assertInstanceOf(MySqlDriver::class, DriverResolver::resolve(new PDO('sqlite::memory:')));
+        $this->assertInstanceOf(SqliteDriver::class, DriverResolver::resolve(new PDO('sqlite::memory:')));
     }
 
     public function test_diagnosis_reports_the_driver()

@@ -4,6 +4,7 @@ namespace Unit;
 
 use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 use TusharKhan\DbErrorExplainer\Drivers\PgSql\PgSqlDriver;
+use TusharKhan\DbErrorExplainer\Drivers\Sqlite\SqliteDriver;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +19,7 @@ class DefaultRulesTest extends TestCase
     public static function rulesProvider(): array
     {
         $cases = [];
-        foreach ([new MySqlDriver(), new PgSqlDriver()] as $driver) {
+        foreach ([new MySqlDriver(), new PgSqlDriver(), new SqliteDriver()] as $driver) {
             foreach ($driver->rules() as $rule) {
                 // PostgreSQL rules have no codes; its driver code is always 7
                 $cases["{$driver->name()}: {$rule->id}"] = [$driver->name(), $rule->errorCodes ?: [7], $rule->sqlStates ?: ['HY000']];

@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use PDO;
 use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 use TusharKhan\DbErrorExplainer\Drivers\PgSql\PgSqlDriver;
+use TusharKhan\DbErrorExplainer\Drivers\Sqlite\SqliteDriver;
 
 final class DriverResolver
 {
@@ -13,6 +14,7 @@ final class DriverResolver
     private const DRIVERS = [
         'mysql' => MySqlDriver::class,
         'pgsql' => PgSqlDriver::class,
+        'sqlite' => SqliteDriver::class,
     ];
 
     // Uses the given driver (instance or name), otherwise the PDO connection's driver.
@@ -29,7 +31,7 @@ final class DriverResolver
             return new $class();
         }
 
-        // Connections without a driver yet (e.g. SQLite) keep the MySQL behaviour until theirs lands
+        // Other connections (e.g. sqlsrv) have no driver yet; MySQL's generic message parsing is the closest fit
         $class = self::DRIVERS[$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)] ?? MySqlDriver::class;
 
         return new $class();

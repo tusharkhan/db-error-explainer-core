@@ -4,6 +4,7 @@ namespace Unit;
 
 use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 use TusharKhan\DbErrorExplainer\Drivers\PgSql\PgSqlDriver;
+use TusharKhan\DbErrorExplainer\Drivers\Sqlite\SqliteDriver;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +21,7 @@ class RuleTest extends TestCase
 
     public function test_every_default_rule_has_an_explanation()
     {
-        $rules = [...new MySqlDriver()->rules(), ...new PgSqlDriver()->rules()];
+        $rules = [...new MySqlDriver()->rules(), ...new PgSqlDriver()->rules(), ...new SqliteDriver()->rules()];
         $missing = array_filter($rules, fn(Rule $rule) => $rule->explanation === null);
 
         $this->assertSame([], array_map(fn(Rule $rule) => $rule->id, array_values($missing)));
