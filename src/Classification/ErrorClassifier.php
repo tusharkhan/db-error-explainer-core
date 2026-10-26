@@ -37,10 +37,10 @@ class ErrorClassifier
     }
 
     // Used when no rule fully matched: any rule listing this code, then the driver's own grouping.
-    public function classifyErrorType(int $errorCode): string
+    public function classifyErrorType(NormalizedException $error): string
     {
-        $rule = array_find($this->rules, fn(Rule $rule) => $rule->handlesCode($errorCode));
+        $rule = array_find($this->rules, fn(Rule $rule) => $rule->handlesCode($error->code));
 
-        return $rule->id ?? $this->driver?->fallbackErrorType($errorCode) ?? 'unknown_error';
+        return $rule->id ?? $this->driver?->fallbackErrorType($error) ?? 'unknown_error';
     }
 }

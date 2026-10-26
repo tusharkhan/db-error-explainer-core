@@ -141,6 +141,22 @@ class MySqlIntrospector implements IntrospectorInterface
         return $result ?: null;
     }
 
+    public function tableForConstraint(string $constraint, ?string $database = null): ?string
+    {
+        // MySQL 8 prefixes the key with the table ("users.users_email_unique")
+        if (str_contains($constraint, '.')) {
+            return explode('.', $constraint, 2)[0];
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+             WHERE CONSTRAINT_NAME = :constraint AND TABLE_SCHEMA = COALESCE(:database, DATABASE())'
+        );
+        $stmt->execute(['constraint' => $constraint, 'database' => $database]);
+
+        return $stmt->fetchColumn() ?: null;
+    }
+
     public function getColumnType(?string $table, ?string $column, ?string $database = null): ?string
     {
         if (!$table || !$column) {

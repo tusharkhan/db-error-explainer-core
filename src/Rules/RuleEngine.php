@@ -31,7 +31,7 @@ class RuleEngine
 
         // Add default context
         $context['error_code'] = $normalized->code;
-        $context['error_description'] = $this->driver->describeError($normalized->code);
+        $context['error_description'] = $this->driver->describeError($normalized);
         $context['table'] = $context['table'] ?? $normalized->table ?? null;
         $context['column'] = $context['column'] ?? $normalized->column ?? null;
         $context['constraint'] = $context['constraint'] ?? $normalized->constraint;

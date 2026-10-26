@@ -6,6 +6,7 @@ use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\Classification\ErrorClassifier;
+use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Explainer;
 use Support\FakePdoException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
@@ -22,17 +23,17 @@ class ErrorTypeTest extends TestCase
 
     public function test_code_with_a_rule_uses_the_rule_id()
     {
-        $this->assertSame(RuleIds::DUPLICATE_ENTRY, $this->classifier->classifyErrorType(MySqlErrorCodes::ER_DUP_ENTRY));
+        $this->assertSame(RuleIds::DUPLICATE_ENTRY, $this->classifier->classifyErrorType(new NormalizedException(message: '', code: MySqlErrorCodes::ER_DUP_ENTRY)));
     }
 
     public function test_foreign_key_code_without_a_rule()
     {
-        $this->assertSame('foreign_key_constraint', $this->classifier->classifyErrorType(MySqlErrorCodes::ER_FK_NO_INDEX_PARENT));
+        $this->assertSame('foreign_key_constraint', $this->classifier->classifyErrorType(new NormalizedException(message: '', code: MySqlErrorCodes::ER_FK_NO_INDEX_PARENT)));
     }
 
     public function test_unknown_code()
     {
-        $this->assertSame('unknown_error', $this->classifier->classifyErrorType(999999));
+        $this->assertSame('unknown_error', $this->classifier->classifyErrorType(new NormalizedException(message: '', code: 999999)));
     }
 
     public function test_matched_rule_sets_error_type()

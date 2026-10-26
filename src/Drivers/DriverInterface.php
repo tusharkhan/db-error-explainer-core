@@ -3,6 +3,7 @@
 namespace TusharKhan\DbErrorExplainer\Drivers;
 
 use PDO;
+use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Introspection\IntrospectorInterface;
 use TusharKhan\DbErrorExplainer\Parsing\MessageParserInterface;
 use TusharKhan\DbErrorExplainer\Rules\Rule;
@@ -20,8 +21,11 @@ interface DriverInterface
 
     public function introspector(PDO $pdo): IntrospectorInterface;
 
-    public function describeError(int $code): string;
+    // The code shown to users: the driver code for MySQL, the SQLSTATE for PostgreSQL.
+    public function errorCode(NormalizedException $error): string;
 
-    // Type for codes no rule covers, or null when unknown.
-    public function fallbackErrorType(int $code): ?string;
+    public function describeError(NormalizedException $error): string;
+
+    // Type for errors no rule covers, or null when unknown.
+    public function fallbackErrorType(NormalizedException $error): ?string;
 }

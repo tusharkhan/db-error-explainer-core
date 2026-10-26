@@ -80,7 +80,7 @@ class Explainer
             $context = $this->ruleEngine->executeRule($rule, $normalized);
 
             // Step 4: Optional introspection for additional context
-            if ($this->introspector && $normalized->table) {
+            if ($this->introspector) {
                 $context = $this->enrichContextWithIntrospection($context, $normalized, $rule->id);
             }
 
@@ -92,7 +92,7 @@ class Explainer
 
             // Step 7: Build diagnosis
             $diagnosis = new Diagnosis(
-                errorCode: (string) $normalized->code,
+                errorCode: $this->driver->errorCode($normalized),
                 errorType: $rule->id,
                 explanation: $explanation,
                 migrationSuggestion: $migrationSuggestion,
@@ -144,21 +144,37 @@ class Explainer
      */
     private function enrichContextWithIntrospection(array $context, NormalizedException $normalized, string $ruleId): array
     {
-        if (!$this->introspector || !$normalized->table) {
+        if (!$this->introspector) {
             return $context;
         }
 
+        // The parsed table, not the rule's context value, which may be a placeholder like 'your_table'
+        $table = $normalized->table;
+
         try {
+            // Some messages name only the constraint (e.g. PostgreSQL duplicates); look its table up
+            $constraintName = $normalized->constraint['constraint_name'] ?? null;
+            if (!$table && $constraintName) {
+                $table = $this->introspector->tableForConstraint($constraintName, $normalized->database);
+                if ($table) {
+                    $context['table'] = $table;
+                }
+            }
+
+            if (!$table) {
+                return $context;
+            }
+
             // Check if table exists
             $context['table_exists'] = $this->introspector->tableExists(
-                $normalized->table,
+                $table,
                 $normalized->database
             );
 
             // Get foreign keys if applicable
             if (in_array($ruleId, [RuleIds::FK_MISSING_PARENT, RuleIds::FK_CANNOT_DELETE_PARENT], true)) {
                 $foreignKeys = $this->introspector->getForeignKeys(
-                    $normalized->table,
+                    $table,
                     $normalized->database
                 );
                 $context['foreign_keys'] = $foreignKeys;
@@ -167,7 +183,7 @@ class Explainer
             // Get unique constraints if applicable
             if ($ruleId === RuleIds::DUPLICATE_ENTRY) {
                 $uniqueConstraints = $this->introspector->getUniqueConstraints(
-                    $normalized->table,
+                    $table,
                     $normalized->database
                 );
                 $context['unique_constraints'] = $uniqueConstraints;
@@ -175,18 +191,18 @@ class Explainer
 
             // Get table columns
             $columns = $this->introspector->getTableColumns(
-                $normalized->table,
+                $table,
                 $normalized->database
             );
             $context['table_columns'] = array_column($columns, 'COLUMN_NAME');
 
             // get column type
-            $columnType = $this->introspector->getColumnType($normalized->table, $normalized->column, $normalized->database);
+            $columnType = $this->introspector->getColumnType($table, $normalized->column, $normalized->database);
             $context['column_type'] = $columnType;
 
         } catch (Throwable $e) {
             $this->logger->logWarning('Introspection failed', [
-                'table' => $normalized->table,
+                'table' => $table,
                 'error' => $e->getMessage(),
             ]);
         }
@@ -199,16 +215,17 @@ class Explainer
      */
     private function createUnknownErrorDiagnosis(NormalizedException $normalized): Diagnosis
     {
-        $errorType = $this->classifier->classifyErrorType($normalized->code);
+        $errorType = $this->classifier->classifyErrorType($normalized);
 
-        $explanation = "MySQL Error {$normalized->code}: " . $normalized->message;
+        $errorCode = $this->driver->errorCode($normalized);
+        $explanation = "Database error {$errorCode}: " . $normalized->message;
 
         if ($errorType !== 'unknown_error') {
             $explanation .= "\n\nThis appears to be a {$errorType} error.";
         }
 
         return new Diagnosis(
-            errorCode: (string) $normalized->code,
+            errorCode: $errorCode,
             errorType: $errorType,
             explanation: $explanation,
             sqlState: $normalized->sqlState,

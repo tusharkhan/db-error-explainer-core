@@ -4,6 +4,7 @@ namespace TusharKhan\DbErrorExplainer\Drivers\MySql;
 
 use PDO;
 use TusharKhan\DbErrorExplainer\Drivers\DriverInterface;
+use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Introspection\IntrospectorInterface;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Parsing\MessageParser;
@@ -73,13 +74,20 @@ final class MySqlDriver implements DriverInterface
         return new MySqlIntrospector($pdo);
     }
 
-    public function describeError(int $code): string
+    public function errorCode(NormalizedException $error): string
     {
-        return MySqlErrorCodes::getDescription($code);
+        return (string) $error->code;
     }
 
-    public function fallbackErrorType(int $code): ?string
+    public function describeError(NormalizedException $error): string
     {
+        return MySqlErrorCodes::getDescription($error->code);
+    }
+
+    public function fallbackErrorType(NormalizedException $error): ?string
+    {
+        $code = $error->code;
+
         return match (true) {
             in_array($code, self::FOREIGN_KEY_CODES, true) => 'foreign_key_constraint',
             $code === MySqlErrorCodes::ER_GET_ERRMSG => 'get_error_msg',

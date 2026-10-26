@@ -16,5 +16,8 @@ interface IntrospectorInterface
 
     public function getTableInfo(string $table, ?string $database = null): ?array;
 
+    // Table that owns a named constraint, for messages that only mention the constraint.
+    public function tableForConstraint(string $constraint, ?string $database = null): ?string;
+
     public function getColumnType(?string $table, ?string $column, ?string $database = null): ?string;
 }

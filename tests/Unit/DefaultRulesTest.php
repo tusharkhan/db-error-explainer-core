@@ -3,6 +3,7 @@
 namespace Unit;
 
 use TusharKhan\DbErrorExplainer\Drivers\MySql\MySqlDriver;
+use TusharKhan\DbErrorExplainer\Drivers\PgSql\PgSqlDriver;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -17,17 +18,20 @@ class DefaultRulesTest extends TestCase
     public static function rulesProvider(): array
     {
         $cases = [];
-        foreach (new MySqlDriver()->rules() as $rule) {
-            $cases[$rule->id] = [$rule->errorCodes, $rule->sqlStates ?: ['HY000']];
+        foreach ([new MySqlDriver(), new PgSqlDriver()] as $driver) {
+            foreach ($driver->rules() as $rule) {
+                // PostgreSQL rules have no codes; its driver code is always 7
+                $cases["{$driver->name()}: {$rule->id}"] = [$driver->name(), $rule->errorCodes ?: [7], $rule->sqlStates ?: ['HY000']];
+            }
         }
 
         return $cases;
     }
 
     #[DataProvider('rulesProvider')]
-    public function test_every_default_rule_produces_a_diagnosis(array $codes, array $sqlStates)
+    public function test_every_default_rule_produces_a_diagnosis(string $driver, array $codes, array $sqlStates)
     {
-        $explainer = new Explainer(new PDO('sqlite::memory:'), ['driver' => 'mysql', 'allow_introspection' => false]);
+        $explainer = new Explainer(new PDO('sqlite::memory:'), ['driver' => $driver, 'allow_introspection' => false]);
 
         $diagnosis = $explainer->explain(FakePdoException::make(
             "SQLSTATE[{$sqlStates[0]}]: test error",

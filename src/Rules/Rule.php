@@ -8,7 +8,7 @@ use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 
 final readonly class Rule
 {
-    private const KEYS = ['id', 'error_code', 'sqlstate', 'message_regex', 'extract', 'explanation', 'migration'];
+    private const KEYS = ['id', 'error_code', 'sqlstate', 'message_regex', 'require_message', 'extract', 'explanation', 'migration'];
 
     public function __construct(
         public string $id,
@@ -18,6 +18,8 @@ final readonly class Rule
         public ?Closure $extract = null,
         public ?string $explanation = null,
         public Closure|string|null $migration = null,
+        // Only match when message_regex matches too; for SQLSTATEs shared by unrelated errors (08006, HY000)
+        public bool $requireMessage = false,
     ) {}
 
     // Builds a rule from the array format used by driver rule files and custom_rules; fails loudly on typos.
@@ -52,6 +54,11 @@ final readonly class Rule
             throw new InvalidArgumentException("Rule \"{$id}\": explanation must be a string.");
         }
 
+        $requireMessage = $definition['require_message'] ?? false;
+        if (!is_bool($requireMessage) || ($requireMessage && $regex === null)) {
+            throw new InvalidArgumentException("Rule \"{$id}\": require_message must be a bool and needs a message_regex.");
+        }
+
         // A string migration is a template, not a function name
         $migration = $definition['migration'] ?? null;
         if ($migration !== null && !is_string($migration)) {
@@ -69,6 +76,7 @@ final readonly class Rule
             extract: $extract === null ? null : Closure::fromCallable($extract),
             explanation: $explanation,
             migration: $migration,
+            requireMessage: $requireMessage,
         );
     }
 
@@ -80,7 +88,8 @@ final readonly class Rule
     public function matches(NormalizedException $normalized): bool
     {
         return ($this->sqlStates === [] || in_array($normalized->sqlState, $this->sqlStates))
-            && ($this->errorCodes === [] || in_array($normalized->code, $this->errorCodes));
+            && ($this->errorCodes === [] || in_array($normalized->code, $this->errorCodes))
+            && (!$this->requireMessage || $this->matchesMessage($normalized->message));
     }
 
     public function matchesMessage(string $message): bool
