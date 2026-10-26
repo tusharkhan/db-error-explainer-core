@@ -44,7 +44,7 @@ class LoggerAdapter
             'error_code' => $diagnosis['error_code'] ?? 'unknown',
             'error_type' => $diagnosis['error_type'] ?? 'unknown',
             'explanation' => $diagnosis['explanation'] ?? '',
-            'has_migration' => !empty($diagnosis['migration_suggestion']),
+            'has_migration' => ($diagnosis['migration_suggestion']['migration_suggestion'] ?? '') !== '',
         ]);
     }
 }
