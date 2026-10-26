@@ -1,5 +1,9 @@
 # DB Error Explainer Core
 
+[![Latest Version](https://img.shields.io/packagist/v/tusharkhan/db-error-explainer-core.svg)](https://packagist.org/packages/tusharkhan/db-error-explainer-core)
+[![Downloads](https://img.shields.io/packagist/dt/tusharkhan/db-error-explainer-core.svg)](https://packagist.org/packages/tusharkhan/db-error-explainer-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Framework-agnostic PHP library that explains database exceptions in plain language and suggests a fix. Works with any PDO connection to **MySQL / MariaDB, PostgreSQL or SQLite**.
 
 For Laravel, use [`tusharkhan/db-error-explainer-laravel`](https://github.com/tusharkhan/db-error-explainer-laravel), which wires this up for you.

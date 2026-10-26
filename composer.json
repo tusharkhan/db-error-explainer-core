@@ -1,10 +1,13 @@
 {
   "name": "tusharkhan/db-error-explainer-core",
-  "description": "Framework-agnostic PHP library for analyzing and explaining database errors with actionable insights",
+  "description": "Explains PDO database errors in plain language with a suggested SQL fix, for MySQL, MariaDB, PostgreSQL and SQLite",
   "keywords": [
     "database",
     "error",
     "mysql",
+    "mariadb",
+    "postgresql",
+    "sqlite",
     "pdo",
     "debugging",
     "diagnosis"
