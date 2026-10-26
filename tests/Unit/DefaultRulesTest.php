@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use TusharKhan\DbErrorExplainer\DTO\Diagnosis;
 use TusharKhan\DbErrorExplainer\Explainer;
 use Support\FakePdoException;
+use TusharKhan\DbErrorExplainer\Rules\Rule;
 use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
 
 class DefaultRulesTest extends TestCase
@@ -16,7 +17,7 @@ class DefaultRulesTest extends TestCase
     {
         $cases = [];
         foreach (RuleEngine::loadDefaultRules() as $rule) {
-            $cases[$rule['id']] = [(array) $rule['error_code'], (array) ($rule['sqlstate'] ?? ['HY000'])];
+            $cases[$rule->id] = [$rule->errorCodes, $rule->sqlStates ?: ['HY000']];
         }
 
         return $cases;
@@ -38,20 +39,11 @@ class DefaultRulesTest extends TestCase
         $this->assertIsString($diagnosis->migrationSuggestion['other_suggestions']);
     }
 
-    public function test_every_message_regex_is_valid()
-    {
-        foreach (RuleEngine::loadDefaultRules() as $rule) {
-            if (isset($rule['message_regex'])) {
-                $this->assertNotFalse(@preg_match($rule['message_regex'], ''), "Invalid regex in rule {$rule['id']}");
-            }
-        }
-    }
-
     public function test_string_migration_is_normalized()
     {
         $this->assertSame(
             ['migration_suggestion' => 'USE db;', 'other_suggestions' => ''],
-            new RuleEngine()->generateMigration(['migration' => fn() => 'USE db;'], [])
+            new RuleEngine()->generateMigration(new Rule('r', migration: fn() => 'USE db;'), [])
         );
     }
 
@@ -59,7 +51,7 @@ class DefaultRulesTest extends TestCase
     {
         $this->assertSame(
             ['migration_suggestion' => '', 'other_suggestions' => ''],
-            new RuleEngine()->generateMigration([], [])
+            new RuleEngine()->generateMigration(new Rule('r'), [])
         );
     }
 

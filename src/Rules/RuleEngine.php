@@ -16,14 +16,9 @@ class RuleEngine
     /**
      * Execute a rule and extract context
      */
-    public function executeRule(array $rule, NormalizedException $normalized): array
+    public function executeRule(Rule $rule, NormalizedException $normalized): array
     {
-        $context = [];
-
-        // Execute the extract function if defined
-        if (isset($rule['extract']) && is_callable($rule['extract'])) {
-            $context = $rule['extract']($normalized);
-        }
+        $context = $rule->extract !== null ? ($rule->extract)($normalized) : [];
 
         // Fall back to parsing the message when the rule found no table
         if (empty($context['table']) && empty($normalized->table)) {
@@ -46,13 +41,12 @@ class RuleEngine
     /**
      * Generate explanation from rule template
      */
-    public function generateExplanation(array $rule, array $context): string
+    public function generateExplanation(Rule $rule, array $context): string
     {
-        if (!isset($rule['explanation'])) {
-            return 'An error occurred';
-        }
+        // Rules without their own text fall back to the error code's description
+        $template = $rule->explanation ?? ($context['error_description'] ?? 'An error occurred') . '.';
 
-        return $this->fillPlaceholders($rule['explanation'], $context);
+        return $this->fillPlaceholders($template, $context);
     }
 
     /**
@@ -60,13 +54,13 @@ class RuleEngine
      *
      * @return array{migration_suggestion: string, other_suggestions: string}
      */
-    public function generateMigration(array $rule, array $context): array
+    public function generateMigration(Rule $rule, array $context): array
     {
-        $migration = $rule['migration'] ?? null;
+        $migration = $rule->migration;
 
         if (is_string($migration)) {
             $migration = $this->fillPlaceholders($migration, $context);
-        } elseif (is_callable($migration)) {
+        } elseif ($migration !== null) {
             $migration = $migration($context);
         }
 
@@ -100,15 +94,9 @@ class RuleEngine
         return $template;
     }
 
-    /**
-     * Load default rules from file
-     */
+    /** @return list<Rule> */
     public static function loadDefaultRules(): array
     {
-        $rulesFile = __DIR__ . '/default_rules.php';
-        if (file_exists($rulesFile)) {
-            return require $rulesFile;
-        }
-        return [];
+        return array_map(Rule::fromArray(...), require __DIR__ . '/default_rules.php');
     }
 }

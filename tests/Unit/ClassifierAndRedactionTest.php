@@ -23,7 +23,7 @@ class ClassifierAndRedactionTest extends TestCase
             code: 1364
         ));
 
-        $this->assertSame('second', $rule['id']);
+        $this->assertSame('second', $rule->id);
     }
 
     public function test_first_rule_wins_when_no_regex_matches()
@@ -35,7 +35,7 @@ class ClassifierAndRedactionTest extends TestCase
 
         $rule = $classifier->getBestMatch(new NormalizedException(message: 'anything', code: 1364));
 
-        $this->assertSame('first', $rule['id']);
+        $this->assertSame('first', $rule->id);
     }
 
     public function test_duplicate_entry_key_is_not_redacted()

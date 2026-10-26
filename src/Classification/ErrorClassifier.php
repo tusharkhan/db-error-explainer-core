@@ -4,6 +4,7 @@ namespace TusharKhan\DbErrorExplainer\Classification;
 
 use TusharKhan\DbErrorExplainer\DTO\NormalizedException;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
+use TusharKhan\DbErrorExplainer\Rules\Rule;
 
 /**
  * Error Classifier
@@ -11,6 +12,7 @@ use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
  */
 class ErrorClassifier
 {
+    /** @var list<Rule> */
     private array $rules;
 
     // FK errors without a dedicated rule still get a useful type.
@@ -50,81 +52,34 @@ class ErrorClassifier
         MySqlErrorCodes::ER_FOREIGN_KEY_WITH_ATOMIC_CREATE_SELECT,
     ];
 
+    /** @param array<Rule|array> $rules */
     public function __construct(array $rules)
     {
-        $this->rules = $rules;
+        $this->rules = array_values(array_map(Rule::from(...), $rules));
     }
 
-    /**
-     * Find matching rules for the given error
-     */
+    /** @return list<Rule> */
     public function findMatchingRules(NormalizedException $normalized): array
     {
-        $matchingRules = [];
-
-        foreach ($this->rules as $rule) {
-            if ($this->ruleMatches($rule, $normalized)) {
-                $matchingRules[] = $rule;
-            }
-        }
-
-        return $matchingRules;
+        return array_values(array_filter($this->rules, fn(Rule $rule) => $rule->matches($normalized)));
     }
 
-    /**
-     * Get the best matching rule
-     */
-    public function getBestMatch(NormalizedException $normalized): ?array
+    public function getBestMatch(NormalizedException $normalized): ?Rule
     {
         $matches = $this->findMatchingRules($normalized);
 
         // Several rules can share a code; prefer the one whose message_regex fits.
-        return array_find(
-            $matches,
-            fn(array $rule) => isset($rule['message_regex']) && preg_match($rule['message_regex'], $normalized->message)
-        ) ?? $matches[0] ?? null;
-    }
-
-    /**
-     * Check if a rule matches the normalized exception
-     */
-    private function ruleMatches(array $rule, NormalizedException $normalized): bool
-    {
-        // Check SQLSTATE if defined in rule
-        if (isset($rule['sqlstate'])) {
-            $sqlStateMatches = is_array($rule['sqlstate'])
-                ? in_array($normalized->sqlState, $rule['sqlstate'])
-                : $normalized->sqlState === $rule['sqlstate'];
-            
-            if (!$sqlStateMatches) {
-                return false;
-            }
-        }
-
-        // Check error code if defined in rule
-        if (isset($rule['error_code'])) {
-            $codeMatches = is_array($rule['error_code'])
-                ? in_array($normalized->code, $rule['error_code'])
-                : $normalized->code === $rule['error_code'];
-            
-            if (!$codeMatches) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_find($matches, fn(Rule $rule) => $rule->matchesMessage($normalized->message))
+            ?? $matches[0] ?? null;
     }
 
     // Used when no rule fully matched: fall back to any rule listing this code.
     public function classifyErrorType(int $errorCode): string
     {
-        $rule = array_find(
-            $this->rules,
-            fn(array $rule) => isset($rule['id']) && in_array($errorCode, (array) ($rule['error_code'] ?? []))
-        );
+        $rule = array_find($this->rules, fn(Rule $rule) => $rule->handlesCode($errorCode));
 
         return match (true) {
-            $rule !== null => $rule['id'],
+            $rule !== null => $rule->id,
             in_array($errorCode, self::FOREIGN_KEY_CODES, true) => 'foreign_key_constraint',
             $errorCode === MySqlErrorCodes::ER_GET_ERRMSG => 'get_error_msg',
             $errorCode === MySqlErrorCodes::ER_GET_TEMPORARY_ERRMSG => 'get_temporary_error_msg',

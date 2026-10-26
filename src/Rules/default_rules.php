@@ -1512,6 +1512,7 @@ return [
             preg_match('/Identifier name \'([^\']+)\' is too long/', $normalized->message, $matches);
             return ['identifier' => $matches[1] ?? 'unknown'];
         },
+        'explanation' => 'Identifier too long: The table or database name makes the file path longer than the operating system allows. Use a shorter name.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1524,6 +1525,7 @@ return [
         'extract' => function($normalized) {
             return ['column' => $normalized->column ?? 'unknown'];
         },
+        'explanation' => 'ALTER not supported in place: Making a column NOT NULL while it still contains NULLs needs a table copy. Fill the NULL values first or use ALGORITHM=COPY.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1536,6 +1538,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Password expired: This account\'s password has expired and must be changed before it can run queries.',
         'migration' => function ($ctx) {
             return "ALTER USER 'username'@'host' IDENTIFIED BY 'new_password';";
         }
@@ -1548,6 +1551,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Row in wrong partition: A row is stored in a partition that does not match the partitioning rules. Rebuild or repair the affected partition.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1560,6 +1564,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Internal server error: MySQL hit an unexpected internal exception. Check the MySQL error log for details.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1572,6 +1577,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Invalid spatial data: The geometry value uses an unsupported byte order (endianness).',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1584,6 +1590,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Replication password too long: The password given to CHANGE MASTER / CHANGE REPLICATION SOURCE is longer than 32 characters.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1596,6 +1603,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Invalid lock name: The name passed to GET_LOCK() is empty or longer than 64 characters.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1608,6 +1616,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Group Replication join failed: This server could not join the group\'s communication layer. Check group_replication_group_seeds and network access between members.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1620,6 +1629,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Group Replication validation failed: The statement is not allowed under Group Replication, for example on a table without a primary key or with a non-InnoDB engine.',
         'migration' => function ($ctx) {
             return '';
         }
@@ -1632,6 +1642,7 @@ return [
         'extract' => function($normalized) {
             return [];
         },
+        'explanation' => 'Row-based logging required: This setting can only be changed when binlog_format is ROW.',
         'migration' => function ($ctx) {
             return '';
         }

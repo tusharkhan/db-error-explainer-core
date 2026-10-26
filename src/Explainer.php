@@ -12,6 +12,7 @@ use TusharKhan\DbErrorExplainer\Introspection\Introspector;
 use TusharKhan\DbErrorExplainer\Lib\MySqlErrorCodes;
 use TusharKhan\DbErrorExplainer\Logging\LoggerAdapter;
 use TusharKhan\DbErrorExplainer\Normalizer\ExceptionNormalizer;
+use TusharKhan\DbErrorExplainer\Rules\Rule;
 use TusharKhan\DbErrorExplainer\Rules\RuleEngine;
 
 /**
@@ -42,7 +43,7 @@ class Explainer
         // Load rules
         $this->rules = array_merge(
             RuleEngine::loadDefaultRules(),
-            $this->config['custom_rules']
+            array_map(Rule::from(...), $this->config['custom_rules'])
         );
 
         // Initialize components
@@ -85,7 +86,7 @@ class Explainer
             // Step 7: Build diagnosis
             $diagnosis = new Diagnosis(
                 errorCode: (string) $normalized->code,
-                errorType: $rule['id'] ?? $this->classifier->classifyErrorType($normalized->code),
+                errorType: $rule->id,
                 explanation: $explanation,
                 migrationSuggestion: $migrationSuggestion,
                 context: $this->config['redact_sensitive_data'] ? $this->redactSensitiveData($context) : $context,
@@ -94,7 +95,7 @@ class Explainer
                     ? $this->redactSensitiveData(['msg' => $normalized->message])['msg']
                     : $normalized->message,
                 metadata: [
-                    'rule_id' => $rule['id'] ?? 'unknown',
+                    'rule_id' => $rule->id,
                     'introspection_enabled' => $this->config['allow_introspection'],
                     'timestamp' => date('Y-m-d H:i:s'),
                 ]
@@ -124,9 +125,9 @@ class Explainer
     /**
      * Add a custom rule
      */
-    public function addCustomRule(array $rule): void
+    public function addCustomRule(Rule|array $rule): void
     {
-        $this->rules[] = $rule;
+        $this->rules[] = Rule::from($rule);
         $this->classifier = new ErrorClassifier($this->rules);
     }
 
