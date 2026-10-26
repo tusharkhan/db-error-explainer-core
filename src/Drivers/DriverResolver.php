@@ -13,12 +13,19 @@ final class DriverResolver
     /** @var array<string, class-string<DriverInterface>> */
     private const DRIVERS = [
         'mysql' => MySqlDriver::class,
+        // Laravel 11+ names MariaDB connections "mariadb"; PDO still reports them as "mysql"
+        'mariadb' => MySqlDriver::class,
         'pgsql' => PgSqlDriver::class,
         'sqlite' => SqliteDriver::class,
     ];
 
+    public static function supports(string $name): bool
+    {
+        return isset(self::DRIVERS[strtolower($name)]);
+    }
+
     // Uses the given driver (instance or name), otherwise the PDO connection's driver.
-    public static function resolve(PDO $pdo, DriverInterface|string|null $driver = null): DriverInterface
+    public static function resolve(?PDO $pdo, DriverInterface|string|null $driver = null): DriverInterface
     {
         if ($driver instanceof DriverInterface) {
             return $driver;
@@ -29,6 +36,10 @@ final class DriverResolver
                 ?? throw new InvalidArgumentException("Unsupported database driver \"{$driver}\". Supported: " . implode(', ', array_keys(self::DRIVERS)));
 
             return new $class();
+        }
+
+        if ($pdo === null) {
+            throw new InvalidArgumentException('Pass a PDO connection or name the driver in the "driver" option.');
         }
 
         // Other connections (e.g. sqlsrv) have no driver yet; MySQL's generic message parsing is the closest fit

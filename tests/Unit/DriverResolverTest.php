@@ -47,4 +47,28 @@ class DriverResolverTest extends TestCase
 
         $this->assertSame('mysql', $diagnosis->metadata['driver']);
     }
+
+    public function test_mariadb_uses_the_mysql_driver()
+    {
+        $this->assertInstanceOf(MySqlDriver::class, DriverResolver::resolve(null, 'mariadb'));
+        $this->assertTrue(DriverResolver::supports('MariaDB'));
+        $this->assertFalse(DriverResolver::supports('sqlsrv'));
+    }
+
+    public function test_driver_name_is_required_without_a_connection()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        DriverResolver::resolve(null);
+    }
+
+    public function test_explainer_works_without_a_connection()
+    {
+        $message = 'SQLSTATE[HY000] [2002] Connection refused';
+
+        $diagnosis = new Explainer(null, ['driver' => 'mysql'])->explain(FakePdoException::make($message, ['HY000', 2002, 'Connection refused'], 2002));
+
+        $this->assertSame('connection_refused', $diagnosis->metadata['rule_id']);
+        $this->assertFalse(isset($diagnosis->context['table_exists']));
+    }
 }

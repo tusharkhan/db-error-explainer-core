@@ -32,7 +32,8 @@ class Explainer
     private ?IntrospectorInterface $introspector;
     private DriverInterface $driver;
 
-    public function __construct(PDO $pdo, array $config = [], ?LoggerInterface $logger = null)
+    // $pdo may be null (e.g. the connection itself failed) when 'driver' is set; introspection is then skipped.
+    public function __construct(?PDO $pdo, array $config = [], ?LoggerInterface $logger = null)
     {
         $this->config = array_merge([
             'allow_introspection' => true,
@@ -57,7 +58,7 @@ class Explainer
         $this->normalizer = new ExceptionNormalizer($this->driver->parser());
         $this->classifier = new ErrorClassifier($this->rules, $this->driver);
         $this->ruleEngine = new RuleEngine($this->driver);
-        $this->introspector = $this->config['allow_introspection'] ? $this->driver->introspector($pdo) : null;
+        $this->introspector = $pdo !== null && $this->config['allow_introspection'] ? $this->driver->introspector($pdo) : null;
     }
 
     /**
